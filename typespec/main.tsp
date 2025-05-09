@@ -41,9 +41,9 @@ model Tenant {
     email: string;
     mobile: string;
     phone: string;
-    original_start_date: offsetDateTime;
-    start_date: offsetDateTime;
-    end_date: offsetDateTime;
+    original_start_date: plainDate;
+    start_date: plainDate;
+    end_date: plainDate;
     vacate_date?: plainDate;
     termination_date?: plainDate;
     termination_reason?: string;
