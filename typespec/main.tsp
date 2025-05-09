@@ -1,5 +1,4 @@
 import "@typespec/http";
-import "./common.tsp";
 
 using Http;
 @service(#{ title: "Property Management Service" })
@@ -7,11 +6,10 @@ using Http;
 
 namespace PropertyManagementService;
 
-using PropertyManagementService.Types;
-
 model Landlord {
     @visibility(Lifecycle.Read)
-    id: id;
+    @format("uuid")
+    id: string;
     name: string;
     email: string;
     mobile: string;
@@ -21,8 +19,10 @@ model Landlord {
 
 model Property {
     @visibility(Lifecycle.Read)
-    id: id;
-    landlord_id: id;
+    @format("uuid")
+    id: string;
+    @format("uuid")
+    landlord_id: string;
     address_line_1: string;
     address_line_2?: string;
     suburb: string;
@@ -35,8 +35,10 @@ model Property {
 
 model Tenant {
     @visibility(Lifecycle.Read)
-    id: id;
-    property_id: id;
+    @format("uuid")
+    id: string;
+    @format("uuid")
+    property_id: string;
     name: string;
     email: string;
     mobile: string;
@@ -70,7 +72,7 @@ namespace Landlords {
 
   @tag("Landlord")
   @get
-  op get(@path id: id): {
+  op get(@path id: string): {
     @statusCode statusCode: 200;
     @body landlord: Landlord;
   } | {
@@ -99,7 +101,7 @@ namespace Landlords {
 
   @tag("Landlord")
   @put
-  op update(@path id: id, @body landlord: Landlord): {
+  op update(@path id: string, @body landlord: Landlord): {
     @statusCode statusCode: 200;
     @body landlord: Landlord;
   } | {
@@ -118,7 +120,7 @@ namespace Landlords {
 
   @tag("Landlord")
   @delete
-  op archive(@path id: id): {
+  op archive(@path id: string): {
     @statusCode statusCode: 200;
     @body landlord: Landlord;
   } | {
@@ -134,7 +136,7 @@ namespace Landlords {
 }
 
 @route("/properties")
-namespace Proeprties {
+namespace Properties {
   @tag("Property")
   @get
   op list(): {
@@ -147,7 +149,7 @@ namespace Proeprties {
 
   @tag("Property")
   @get
-  op get(@path id: id): {
+  op get(@path id: string): {
     @statusCode statusCode: 200;
     @body property: Property;
   } | {
@@ -176,7 +178,7 @@ namespace Proeprties {
 
   @tag("Property")
   @put
-  op update(@path id: id, @body property: Property): {
+  op update(@path id: string, @body property: Property): {
     @statusCode statusCode: 200;
     @body property: Property;
   } | {
@@ -195,7 +197,7 @@ namespace Proeprties {
 
   @tag("Property")
   @delete
-  op archive(@path id: id): {
+  op archive(@path id: string): {
     @statusCode statusCode: 200;
     @body property: Property;
   } | {
@@ -224,7 +226,7 @@ namespace Tenants {
 
   @tag("Tenant")
   @get
-  op get(@path id: id): {
+  op get(@path id: string): {
     @statusCode statusCode: 200;
     @body tenant: Tenant;
   } | {
@@ -253,7 +255,7 @@ namespace Tenants {
 
   @tag("Tenant")
   @put
-  op update(@path id: id, @body tenant: Tenant): {
+  op update(@path id: string, @body tenant: Tenant): {
     @statusCode statusCode: 200;
     @body tenant: Tenant;
   } | {
@@ -272,7 +274,7 @@ namespace Tenants {
 
   @tag("Tenant")
   @delete
-  op archive(@path id: id): {
+  op archive(@path id: string): {
     @statusCode statusCode: 200;
     @body tenant: Tenant;
   } | {
