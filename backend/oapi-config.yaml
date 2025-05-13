@@ -2,4 +2,5 @@ package: api
 generate:
   gorilla-server: true
   models: true
-output: gen.go
+  embedded-spec: true
+output: server.gen.go
