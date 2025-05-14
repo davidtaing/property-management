@@ -1,6 +1,5 @@
 -- +goose Up
 -- +goose StatementBegin
-SELECT 'up SQL query';
 CREATE TABLE landlords (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     email TEXT NOT NULL,
