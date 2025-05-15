@@ -7,7 +7,7 @@ CREATE TABLE properties (
     suburb TEXT NOT NULL,
     postcode TEXT NOT NULL,
     state TEXT NOT NULL,
-    management_fee DOUBLE PRECISION NOT NULL,
+    management_fee DECIMAL(18, 2) NOT NULL,
     is_archived TIMESTAMP WITH TIME ZONE,
     landlord_id UUID NOT NULL REFERENCES landlords(id)
 );
