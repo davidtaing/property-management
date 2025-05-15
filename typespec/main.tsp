@@ -17,6 +17,10 @@ model Landlord {
     is_archived?: offsetDateTime;
 }
 
+model LandlordList {
+  items: Landlord[];
+}
+
 model Property {
     @visibility(Lifecycle.Read)
     @format("uuid")
@@ -31,6 +35,10 @@ model Property {
     country: string;
     management_fee: float64;
     is_archived?: offsetDateTime;
+}
+
+model PropertyList {
+  items: Property[];
 }
 
 model Tenant {
@@ -52,6 +60,10 @@ model Tenant {
     is_archived?: offsetDateTime;
 } 
 
+model TenantList {
+  items: Tenant[];
+}
+
 @error
 model Error {
   code: int32;
@@ -64,7 +76,7 @@ namespace Landlords {
   @get
   op list(): {
     @statusCode statusCode: 200;
-    @body landlords: Landlord[]
+    @body landlords: LandlordList;
   } | {
     @statusCode statusCode: 500;
     @body error: Error
@@ -141,10 +153,10 @@ namespace Properties {
   @get
   op list(): {
     @statusCode statusCode: 200;
-    @body properties: Property[]
+    @body properties: PropertyList;
   } | {
     @statusCode statusCode: 500;
-    @body error: Error
+    @body error: Error;
   };
 
   @tag("Property")
@@ -218,10 +230,10 @@ namespace Tenants {
   @get
   op list(): {
     @statusCode statusCode: 200;
-    @body tenants: Tenant[]
+    @body tenants: TenantList;
   } | {
     @statusCode statusCode: 500;
-    @body error: Error
+    @body error: Error;
   };
 
   @tag("Tenant")
