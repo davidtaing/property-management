@@ -13,7 +13,7 @@ model Landlord {
     name: string;
     email: string;
     mobile: string;
-    phone: string;
+    phone?: string;
     is_archived?: offsetDateTime;
 }
 
@@ -50,7 +50,7 @@ model Tenant {
     name: string;
     email: string;
     mobile: string;
-    phone: string;
+    phone?: string;
     original_start_date: plainDate;
     start_date: plainDate;
     end_date: plainDate;

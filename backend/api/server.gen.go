@@ -33,7 +33,7 @@ type Landlord struct {
 	IsArchived *time.Time          `json:"is_archived,omitempty"`
 	Mobile     string              `json:"mobile"`
 	Name       string              `json:"name"`
-	Phone      string              `json:"phone"`
+	Phone      *string             `json:"phone,omitempty"`
 }
 
 // LandlordList defines model for LandlordList.
@@ -69,7 +69,7 @@ type Tenant struct {
 	Mobile            string              `json:"mobile"`
 	Name              string              `json:"name"`
 	OriginalStartDate openapi_types.Date  `json:"original_start_date"`
-	Phone             string              `json:"phone"`
+	Phone             *string             `json:"phone,omitempty"`
 	PropertyId        openapi_types.UUID  `json:"property_id"`
 	StartDate         openapi_types.Date  `json:"start_date"`
 	TerminationDate   *openapi_types.Date `json:"termination_date,omitempty"`
@@ -617,24 +617,24 @@ func HandlerWithOptions(si ServerInterface, options GorillaServerOptions) http.H
 var swaggerSpec = []string{
 
 	"H4sIAAAAAAAC/+xaXY/iNhT9K5bbx3RgZ6fSKm/bD1WVpupK3T5VI3SJL+BVYqf2NS1F/PfKTgjJEhhA",
-	"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",
+	"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",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file
