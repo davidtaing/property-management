@@ -1,3 +1,6 @@
+start-server:
+	cd backend && go run main.go
+
 gen-openapi:
 	tsp compile typespec/main.tsp
 
