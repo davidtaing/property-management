@@ -32,7 +32,6 @@ model Property {
     suburb: string;
     postcode: string;
     state: string;
-    country: string;
     management_fee: float64;
     is_archived?: offsetDateTime;
 }
