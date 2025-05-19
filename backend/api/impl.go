@@ -24,7 +24,7 @@ func NewServer(dbpool *pgxpool.Pool) *Server {
 func (s *Server) LandlordsList(w http.ResponseWriter, r *http.Request) {
 	landlords := []Landlord{}
 
-	rows, err := s.dbpool.Query(context.Background(), "SELECT * FROM landlords")
+	rows, err := s.dbpool.Query(context.Background(), "SELECT id, name, email, mobile, phone, is_archived FROM landlords")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -71,7 +71,12 @@ func (s *Server) LandlordsCreate(w http.ResponseWriter, r *http.Request) {
 			$2,
 			$3,
 			$4
-		) RETURNING *`,
+		) RETURNING id,
+			name,
+			email,
+			mobile,
+			phone,
+			is_archived`,
 		payload.Name,
 		payload.Email,
 		payload.Mobile,
@@ -155,7 +160,12 @@ func (s *Server) LandlordsUpdate(w http.ResponseWriter, r *http.Request, id stri
 			mobile = $3,
 			phone = $4
 		WHERE id = $5
-		RETURNING *`,
+		RETURNING id,
+			name,
+			email,
+			mobile,
+			phone,
+			is_archived`,
 		payload.Name,
 		payload.Email,
 		payload.Mobile,
