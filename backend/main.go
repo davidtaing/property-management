@@ -7,10 +7,10 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/gorilla/mux"
-	middleware "github.com/oapi-codegen/nethttp-middleware"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/davidtaing/property-management/api"
+	"github.com/gorilla/mux"
+	"github.com/jackc/pgx/v5/pgxpool"
+	middleware "github.com/oapi-codegen/nethttp-middleware"
 )
 
 func main() {
