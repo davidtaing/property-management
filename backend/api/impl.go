@@ -11,7 +11,7 @@ import (
 // ensure that we've conformed to the `ServerInterface` with a compile-time check
 var _ ServerInterface = (*Server)(nil)
 
-type Server struct{
+type Server struct {
 	dbpool *pgxpool.Pool
 }
 
@@ -37,7 +37,7 @@ func (s *Server) LandlordsList(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
-		}	
+		}
 		landlords = append(landlords, landlord)
 	}
 
@@ -59,7 +59,7 @@ func (s *Server) LandlordsCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rows, err := s.dbpool.Query(
+	row := s.dbpool.QueryRow(
 		context.Background(),
 		`INSERT INTO landlords (
 			name,
@@ -83,31 +83,23 @@ func (s *Server) LandlordsCreate(w http.ResponseWriter, r *http.Request) {
 		payload.Phone,
 	)
 
+	var createdLandlord Landlord
+
+	err = row.Scan(&createdLandlord.Id, &createdLandlord.Name, &createdLandlord.Email, &createdLandlord.Mobile, &createdLandlord.Phone, &createdLandlord.IsArchived)
+
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	var createdLandlord Landlord
-
-	if rows.Next() {
-		err = rows.Scan(&createdLandlord.Id, &createdLandlord.Name, &createdLandlord.Email, &createdLandlord.Mobile, &createdLandlord.Phone, &createdLandlord.IsArchived)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-	}
-
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(createdLandlord)
-	
 }
 
 func (s *Server) LandlordsArchive(w http.ResponseWriter, r *http.Request, id string) {
 	var archivedLandlord Landlord
 
-	
 	rows, err := s.dbpool.Exec(context.Background(), "UPDATE landlords SET is_archived = NOW() WHERE id = $1", id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -152,7 +144,7 @@ func (s *Server) LandlordsUpdate(w http.ResponseWriter, r *http.Request, id stri
 		return
 	}
 
-	rows, err := s.dbpool.Query(
+	row := s.dbpool.QueryRow(
 		context.Background(),
 		`UPDATE landlords SET
 			name = $1,
@@ -175,18 +167,14 @@ func (s *Server) LandlordsUpdate(w http.ResponseWriter, r *http.Request, id stri
 
 	var updatedLandlord Landlord
 
-	if rows.Next() {
-		err = rows.Scan(&updatedLandlord.Id, &updatedLandlord.Name, &updatedLandlord.Email, &updatedLandlord.Mobile, &updatedLandlord.Phone, &updatedLandlord.IsArchived)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-	}
+	err = row.Scan(&updatedLandlord.Id, &updatedLandlord.Name, &updatedLandlord.Email, &updatedLandlord.Mobile, &updatedLandlord.Phone, &updatedLandlord.IsArchived)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(updatedLandlord)
 }
@@ -252,7 +240,7 @@ func (s *Server) PropertiesCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rows, err := s.dbpool.Query(
+	row := s.dbpool.QueryRow(
 		context.Background(),
 		`INSERT INTO properties (
 			address_line_1,
@@ -291,12 +279,11 @@ func (s *Server) PropertiesCreate(w http.ResponseWriter, r *http.Request) {
 
 	var createdProperty Property
 
-	if rows.Next() {
-		err = rows.Scan(&createdProperty.Id, &createdProperty.AddressLine1, &createdProperty.AddressLine2, &createdProperty.Suburb, &createdProperty.State, &createdProperty.Postcode, &createdProperty.LandlordId, &createdProperty.ManagementFee, &createdProperty.IsArchived)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	err = row.Scan(&createdProperty.Id, &createdProperty.AddressLine1, &createdProperty.AddressLine2, &createdProperty.Suburb, &createdProperty.State, &createdProperty.Postcode, &createdProperty.LandlordId, &createdProperty.ManagementFee, &createdProperty.IsArchived)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -307,7 +294,7 @@ func (s *Server) PropertiesCreate(w http.ResponseWriter, r *http.Request) {
 func (s *Server) PropertiesArchive(w http.ResponseWriter, r *http.Request, id string) {
 	var archivedProperty Property
 
-	rows, err := s.dbpool.Exec(context.Background(), 
+	rows, err := s.dbpool.Exec(context.Background(),
 		`UPDATE properties 
 			SET is_archived = NOW() 
 			WHERE id = $1`,
@@ -323,7 +310,7 @@ func (s *Server) PropertiesArchive(w http.ResponseWriter, r *http.Request, id st
 		return
 	}
 
-	err = s.dbpool.QueryRow(context.Background(), 
+	err = s.dbpool.QueryRow(context.Background(),
 		`SELECT id,
 			address_line_1,
 			address_line_2,
@@ -334,17 +321,17 @@ func (s *Server) PropertiesArchive(w http.ResponseWriter, r *http.Request, id st
 			management_fee,
 			is_archived
 		FROM properties 
-		WHERE id = $1`, 
+		WHERE id = $1`,
 		id,
 	).Scan(
-		&archivedProperty.Id, 
-		&archivedProperty.AddressLine1, 
-		&archivedProperty.AddressLine2, 
-		&archivedProperty.Suburb, 
-		&archivedProperty.State, 
-		&archivedProperty.Postcode, 
-		&archivedProperty.LandlordId, 
-		&archivedProperty.ManagementFee, 
+		&archivedProperty.Id,
+		&archivedProperty.AddressLine1,
+		&archivedProperty.AddressLine2,
+		&archivedProperty.Suburb,
+		&archivedProperty.State,
+		&archivedProperty.Postcode,
+		&archivedProperty.LandlordId,
+		&archivedProperty.ManagementFee,
 		&archivedProperty.IsArchived,
 	)
 
@@ -360,7 +347,7 @@ func (s *Server) PropertiesArchive(w http.ResponseWriter, r *http.Request, id st
 
 func (s *Server) PropertiesGet(w http.ResponseWriter, r *http.Request, id string) {
 	var property Property
-	err := s.dbpool.QueryRow(context.Background(), 
+	err := s.dbpool.QueryRow(context.Background(),
 		`SELECT id,
 			address_line_1,
 			address_line_2,
@@ -371,17 +358,17 @@ func (s *Server) PropertiesGet(w http.ResponseWriter, r *http.Request, id string
 			management_fee,
 			is_archived
 		FROM properties 
-		WHERE id = $1`, 
+		WHERE id = $1`,
 		id,
 	).Scan(
-		&property.Id, 
-		&property.AddressLine1, 
-		&property.AddressLine2, 
-		&property.Suburb, 
-		&property.State, 
-		&property.Postcode, 
-		&property.LandlordId, 
-		&property.ManagementFee, 
+		&property.Id,
+		&property.AddressLine1,
+		&property.AddressLine2,
+		&property.Suburb,
+		&property.State,
+		&property.Postcode,
+		&property.LandlordId,
+		&property.ManagementFee,
 		&property.IsArchived,
 	)
 
@@ -393,7 +380,7 @@ func (s *Server) PropertiesGet(w http.ResponseWriter, r *http.Request, id string
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(property)
-}	
+}
 
 func (s *Server) PropertiesUpdate(w http.ResponseWriter, r *http.Request, id string) {
 	var payload Property
@@ -403,7 +390,7 @@ func (s *Server) PropertiesUpdate(w http.ResponseWriter, r *http.Request, id str
 		return
 	}
 
-	rows, err := s.dbpool.Query(
+	row := s.dbpool.QueryRow(
 		context.Background(),
 		`UPDATE properties SET
 			address_line_1 = $1,
@@ -436,10 +423,8 @@ func (s *Server) PropertiesUpdate(w http.ResponseWriter, r *http.Request, id str
 
 	var updatedProperty Property
 
-	if rows.Next() {
-		err = rows.Scan(&updatedProperty.Id, &updatedProperty.AddressLine1, &updatedProperty.AddressLine2, &updatedProperty.Suburb, &updatedProperty.State, &updatedProperty.Postcode, &updatedProperty.LandlordId, &updatedProperty.ManagementFee, &updatedProperty.IsArchived)
-	}
-	
+	err = row.Scan(&updatedProperty.Id, &updatedProperty.AddressLine1, &updatedProperty.AddressLine2, &updatedProperty.Suburb, &updatedProperty.State, &updatedProperty.Postcode, &updatedProperty.LandlordId, &updatedProperty.ManagementFee, &updatedProperty.IsArchived)
+
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -458,7 +443,7 @@ func (s *Server) TenantsList(w http.ResponseWriter, r *http.Request) {
 func (s *Server) TenantsCreate(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 	w.Write([]byte("Not yet implemented"))
-}	
+}
 
 func (s *Server) TenantsArchive(w http.ResponseWriter, r *http.Request, id string) {
 	w.WriteHeader(http.StatusNotImplemented)
@@ -473,4 +458,4 @@ func (s *Server) TenantsGet(w http.ResponseWriter, r *http.Request, id string) {
 func (s *Server) TenantsUpdate(w http.ResponseWriter, r *http.Request, id string) {
 	w.WriteHeader(http.StatusNotImplemented)
 	w.Write([]byte("Not yet implemented"))
-}	
+}
