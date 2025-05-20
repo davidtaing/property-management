@@ -7,7 +7,6 @@ import (
 	"net/http"
 
 	"github.com/jackc/pgx/pgtype"
-	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
@@ -519,41 +518,7 @@ func (s *Server) TenantsList(w http.ResponseWriter, r *http.Request) {
 	defer rows.Close()
 
 	for rows.Next() {
-		var tenant Tenant
-		var originalStartDate pgtype.Date
-		var startDate pgtype.Date
-		var endDate pgtype.Date
-		var terminationDate *pgtype.Date
-		var vacateDate *pgtype.Date
-
-		err := rows.Scan(
-			&tenant.Id,
-			&tenant.Name,
-			&tenant.Email,
-			&tenant.Mobile,
-			&tenant.Phone,
-			&originalStartDate,
-			&startDate,
-			&endDate,
-			&terminationDate,
-			&tenant.TerminationReason,
-			&vacateDate,
-			&tenant.IsArchived,
-			&tenant.PropertyId,
-		)
-
-		tenant.OriginalStartDate.Time = originalStartDate.Time
-		tenant.StartDate.Time = startDate.Time
-		tenant.EndDate.Time = endDate.Time
-
-		if terminationDate != nil {
-			tenant.TerminationDate = &openapi_types.Date{Time: terminationDate.Time}
-		}
-
-		if vacateDate != nil {
-			tenant.VacateDate = &openapi_types.Date{Time: vacateDate.Time}
-		}
-
+		tenant, err := scanTenant(rows)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			fmt.Println(err.Error())
@@ -768,7 +733,9 @@ func (s *Server) TenantsUpdate(w http.ResponseWriter, r *http.Request, id string
 	json.NewEncoder(w).Encode(updatedTenant)
 }
 
-func scanTenant(row pgx.Row) (Tenant, error) {
+func scanTenant(scanner interface {
+	Scan(dest ...interface{}) error
+}) (Tenant, error) {
 	var tenant Tenant
 	var originalStartDate pgtype.Date
 	var startDate pgtype.Date
@@ -776,7 +743,7 @@ func scanTenant(row pgx.Row) (Tenant, error) {
 	var terminationDate *pgtype.Date
 	var vacateDate *pgtype.Date
 
-	err := row.Scan(
+	err := scanner.Scan(
 		&tenant.Id,
 		&tenant.Name,
 		&tenant.Email,
