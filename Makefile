@@ -2,7 +2,7 @@ start-server:
 	cd backend && go run main.go
 
 gen-openapi:
-	tsp compile typespec/main.tsp
+	tsp compile --output-dir . typespec/main.tsp
 
 gen-backend:
 	cd backend/api && go generate
