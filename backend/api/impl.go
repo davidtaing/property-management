@@ -3,9 +3,13 @@ package api
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 
+	"github.com/jackc/pgx/pgtype"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
 // ensure that we've conformed to the `ServerInterface` with a compile-time check
@@ -436,26 +440,318 @@ func (s *Server) PropertiesUpdate(w http.ResponseWriter, r *http.Request, id str
 }
 
 func (s *Server) TenantsList(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusNotImplemented)
-	w.Write([]byte("Not yet implemented"))
+	tenants := []Tenant{}
+
+	sql := `
+		SELECT 
+			id,
+			name,
+			email,
+			mobile,
+			phone,
+			original_start_date,
+			start_date,
+			end_date,
+			termination_date,
+			termination_reason,
+			vacate_date,
+			is_archived,
+			property_id
+		FROM tenants
+	`
+
+	rows, err := s.dbpool.Query(context.Background(), sql)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var tenant Tenant
+		var originalStartDate pgtype.Date
+		var startDate pgtype.Date
+		var endDate pgtype.Date
+		var terminationDate *pgtype.Date
+		var vacateDate *pgtype.Date
+
+		err := rows.Scan(
+			&tenant.Id,
+			&tenant.Name,
+			&tenant.Email,
+			&tenant.Mobile,
+			&tenant.Phone,
+			&originalStartDate,
+			&startDate,
+			&endDate,
+			&terminationDate,
+			&tenant.TerminationReason,
+			&vacateDate,
+			&tenant.IsArchived,
+			&tenant.PropertyId,
+		)
+
+		tenant.OriginalStartDate.Time = originalStartDate.Time
+		tenant.StartDate.Time = startDate.Time
+		tenant.EndDate.Time = endDate.Time
+
+		if terminationDate != nil {
+			tenant.TerminationDate = &openapi_types.Date{Time: terminationDate.Time}
+		}
+
+		if vacateDate != nil {
+			tenant.VacateDate = &openapi_types.Date{Time: vacateDate.Time}
+		}
+
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			fmt.Println(err.Error())
+			return
+		}
+		tenants = append(tenants, tenant)
+	}
+
+	if err := rows.Err(); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(TenantList{Items: tenants})
 }
 
 func (s *Server) TenantsCreate(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusNotImplemented)
-	w.Write([]byte("Not yet implemented"))
+	var payload Tenant
+	err := json.NewDecoder(r.Body).Decode(&payload)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	sql := `
+		INSERT INTO tenants (
+			name,
+			email,
+			mobile,
+			phone,
+			original_start_date,
+			start_date,
+			end_date,
+			property_id
+		)
+		VALUES (
+			$1,
+			$2,
+			$3,
+			$4,
+			$5,
+			$6,
+			$7,
+			$8
+		) RETURNING 
+		 	id,
+			name,
+			email,
+			mobile,
+			phone,
+			original_start_date,
+			start_date,
+			end_date,
+			termination_date,
+			termination_reason,
+			vacate_date,
+			is_archived,
+			property_id
+	`
+
+	row := s.dbpool.QueryRow(
+		context.Background(),
+		sql,
+		payload.Name,
+		payload.Email,
+		payload.Mobile,
+		payload.Phone,
+		payload.OriginalStartDate,
+		payload.StartDate,
+		payload.EndDate,
+		payload.PropertyId,
+	)
+
+	createdTenant, err := scanTenant(row)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		fmt.Println(err.Error())
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(createdTenant)
 }
 
 func (s *Server) TenantsArchive(w http.ResponseWriter, r *http.Request, id string) {
-	w.WriteHeader(http.StatusNotImplemented)
-	w.Write([]byte("Not yet implemented"))
+	var archivedTenant Tenant
+
+	sql := `
+		UPDATE tenants 
+		SET is_archived = NOW() 
+		WHERE id = $1
+		RETURNING 
+			id,
+			name,
+			email,
+			mobile,
+			phone,
+			original_start_date,
+			start_date,
+			end_date,
+			termination_date,
+			termination_reason,
+			vacate_date,
+			is_archived,
+			property_id
+	`
+
+	row := s.dbpool.QueryRow(context.Background(), sql, id)
+
+	archivedTenant, err := scanTenant(row)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(archivedTenant)
 }
 
 func (s *Server) TenantsGet(w http.ResponseWriter, r *http.Request, id string) {
-	w.WriteHeader(http.StatusNotImplemented)
-	w.Write([]byte("Not yet implemented"))
+	var tenant Tenant
+
+	sql := `
+		SELECT id,
+			name,
+			email,
+			mobile,
+			phone,
+			original_start_date,
+			start_date,
+			end_date,
+			termination_date,
+			termination_reason,
+			vacate_date,
+			is_archived,
+			property_id
+		FROM tenants 
+		WHERE id = $1
+	`
+
+	row := s.dbpool.QueryRow(context.Background(), sql, id)
+
+	tenant, err := scanTenant(row)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(tenant)
 }
 
 func (s *Server) TenantsUpdate(w http.ResponseWriter, r *http.Request, id string) {
-	w.WriteHeader(http.StatusNotImplemented)
-	w.Write([]byte("Not yet implemented"))
+	var payload Tenant
+	err := json.NewDecoder(r.Body).Decode(&payload)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	sql := `
+		UPDATE tenants SET
+			name = $1,
+			email = $2,
+			mobile = $3,
+			phone = $4,
+			original_start_date = $5,
+			start_date = $6,
+			end_date = $7,
+			termination_date = $8,
+			termination_reason = $9,
+			vacate_date = $10,
+			is_archived = $11,
+			property_id = $12
+		WHERE id = $13
+		RETURNING 
+			id,
+			name,
+			email,
+			mobile,
+			phone,
+			original_start_date,
+			start_date,
+			end_date,
+			termination_date,
+			termination_reason,
+			vacate_date,
+			is_archived,
+			property_id
+	`
+
+	var updatedTenant Tenant
+
+	row := s.dbpool.QueryRow(context.Background(), sql, payload.Name, payload.Email, payload.Mobile, payload.Phone, payload.OriginalStartDate, payload.StartDate, payload.EndDate, payload.TerminationDate, payload.TerminationReason, payload.VacateDate, payload.IsArchived, payload.PropertyId, id)
+
+	updatedTenant, err = scanTenant(row)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(updatedTenant)
+}
+
+func scanTenant(row pgx.Row) (Tenant, error) {
+	var tenant Tenant
+	var originalStartDate pgtype.Date
+	var startDate pgtype.Date
+	var endDate pgtype.Date
+	var terminationDate *pgtype.Date
+	var vacateDate *pgtype.Date
+
+	err := row.Scan(
+		&tenant.Id,
+		&tenant.Name,
+		&tenant.Email,
+		&tenant.Mobile,
+		&tenant.Phone,
+		&originalStartDate,
+		&startDate,
+		&endDate,
+		&terminationDate,
+		&tenant.TerminationReason,
+		&vacateDate,
+		&tenant.IsArchived,
+		&tenant.PropertyId,
+	)
+
+	tenant.OriginalStartDate.Time = originalStartDate.Time
+	tenant.StartDate.Time = startDate.Time
+	tenant.EndDate.Time = endDate.Time
+
+	if terminationDate != nil {
+		tenant.TerminationDate = &openapi_types.Date{Time: terminationDate.Time}
+	}
+
+	if vacateDate != nil {
+		tenant.VacateDate = &openapi_types.Date{Time: vacateDate.Time}
+	}
+
+	return tenant, err
 }
