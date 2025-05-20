@@ -3,10 +3,13 @@ package api
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 
 	"github.com/jackc/pgx/pgtype"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
@@ -56,7 +59,7 @@ func (s *Server) LandlordsList(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := rows.Err(); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		handleLandlordError(err, w)
 		return
 	}
 
@@ -113,7 +116,7 @@ func (s *Server) LandlordsCreate(w http.ResponseWriter, r *http.Request) {
 	)
 
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		handleLandlordError(err, w)
 		return
 	}
 
@@ -146,7 +149,7 @@ func (s *Server) LandlordsArchive(w http.ResponseWriter, r *http.Request, id str
 	)
 
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		handleLandlordError(err, w)
 		return
 	}
 
@@ -166,7 +169,8 @@ func (s *Server) LandlordsGet(w http.ResponseWriter, r *http.Request, id string)
 			mobile, 
 			phone, 
 			is_archived 
-		FROM landlords WHERE id = $1`
+		FROM landlords WHERE id = $1
+	`
 
 	err := s.dbpool.QueryRow(context.Background(), sql, id).Scan(
 		&landlord.Id,
@@ -177,12 +181,13 @@ func (s *Server) LandlordsGet(w http.ResponseWriter, r *http.Request, id string)
 		&landlord.IsArchived,
 	)
 
+	w.Header().Set("Content-Type", "application/json")
+
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		handleLandlordError(err, w)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(landlord)
 }
@@ -225,7 +230,7 @@ func (s *Server) LandlordsUpdate(w http.ResponseWriter, r *http.Request, id stri
 	err = row.Scan(&updatedLandlord.Id, &updatedLandlord.Name, &updatedLandlord.Email, &updatedLandlord.Mobile, &updatedLandlord.Phone, &updatedLandlord.IsArchived)
 
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		handleLandlordError(err, w)
 		return
 	}
 
@@ -772,4 +777,25 @@ func scanTenant(scanner interface {
 	}
 
 	return tenant, err
+}
+
+func handleLandlordError(err error, w http.ResponseWriter) {
+	if err == pgx.ErrNoRows {
+		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(Error{Message: "No landlord found with the specified ID", Code: http.StatusNotFound})
+		return
+	}
+
+	var pgErr *pgconn.PgError
+	if errors.As(err, &pgErr) {
+		if pgErr.Code == "22P02" {
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(Error{Message: "Invalid Landlord ID format - must be a valid UUID", Code: http.StatusBadRequest})
+			return
+		}
+	}
+
+	w.WriteHeader(http.StatusInternalServerError)
+	json.NewEncoder(w).Encode(Error{Message: "Internal server error", Code: http.StatusInternalServerError})
+	fmt.Println(err.Error())
 }
