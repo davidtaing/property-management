@@ -9,9 +9,10 @@ import (
 	"os"
 
 	"github.com/davidtaing/property-management/api"
+	"github.com/davidtaing/property-management/middleware"
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v5/pgxpool"
-	middleware "github.com/oapi-codegen/nethttp-middleware"
+	oapiMiddleware "github.com/oapi-codegen/nethttp-middleware"
 )
 
 func main() {
@@ -51,7 +52,10 @@ func main() {
 
 	// Use our validation middleware to check all requests against the
 	// OpenAPI schema.
-	r.Use(middleware.OapiRequestValidator(swagger))
+	r.Use(oapiMiddleware.OapiRequestValidator(swagger))
+
+	// Add the logging middleware to the router
+	r.Use(middleware.LoggingMiddleware(logger))
 
 	// get an `http.Handler` that we can use
 	h := api.HandlerFromMux(server, r)
