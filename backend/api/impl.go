@@ -62,7 +62,7 @@ func (s *Server) LandlordsList(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := rows.Err(); err != nil {
-		apiError := handleLandlordError(err, w)
+		apiError := handleLandlordErrors(err)
 
 		w.WriteHeader(int(apiError.Code))
 		json.NewEncoder(w).Encode(apiError)
@@ -122,7 +122,7 @@ func (s *Server) LandlordsCreate(w http.ResponseWriter, r *http.Request) {
 	)
 
 	if err != nil {
-		apiError := handleLandlordError(err, w)
+		apiError := handleLandlordErrors(err)
 
 		w.WriteHeader(int(apiError.Code))
 		json.NewEncoder(w).Encode(apiError)
@@ -158,7 +158,7 @@ func (s *Server) LandlordsArchive(w http.ResponseWriter, r *http.Request, id str
 	)
 
 	if err != nil {
-		apiError := handleLandlordError(err, w)
+		apiError := handleLandlordErrors(err)
 
 		w.WriteHeader(int(apiError.Code))
 		json.NewEncoder(w).Encode(apiError)
@@ -196,7 +196,7 @@ func (s *Server) LandlordsGet(w http.ResponseWriter, r *http.Request, id string)
 	w.Header().Set("Content-Type", "application/json")
 
 	if err != nil {
-		apiError := handleLandlordError(err, w)
+		apiError := handleLandlordErrors(err)
 
 		w.WriteHeader(int(apiError.Code))
 		json.NewEncoder(w).Encode(apiError)
@@ -245,7 +245,7 @@ func (s *Server) LandlordsUpdate(w http.ResponseWriter, r *http.Request, id stri
 	err = row.Scan(&updatedLandlord.Id, &updatedLandlord.Name, &updatedLandlord.Email, &updatedLandlord.Mobile, &updatedLandlord.Phone, &updatedLandlord.IsArchived)
 
 	if err != nil {
-		apiError := handleLandlordError(err, w)
+		apiError := handleLandlordErrors(err)
 
 		w.WriteHeader(int(apiError.Code))
 		json.NewEncoder(w).Encode(apiError)
@@ -797,7 +797,7 @@ func scanTenant(scanner interface {
 	return tenant, err
 }
 
-func handleLandlordError(err error, w http.ResponseWriter) Error {
+func handleLandlordErrors(err error) Error {
 	if err == pgx.ErrNoRows {
 		return Error{Message: "No landlord found with the specified ID", Code: http.StatusNotFound}
 	}
