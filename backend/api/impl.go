@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 
 	"github.com/jackc/pgx/pgtype"
@@ -19,11 +20,13 @@ var _ ServerInterface = (*Server)(nil)
 
 type Server struct {
 	dbpool *pgxpool.Pool
+	logger *slog.Logger
 }
 
-func NewServer(dbpool *pgxpool.Pool) *Server {
+func NewServer(dbpool *pgxpool.Pool, logger *slog.Logger) *Server {
 	return &Server{
 		dbpool: dbpool,
+		logger: logger,
 	}
 }
 
