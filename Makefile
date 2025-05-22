@@ -7,12 +7,11 @@ gen-openapi:
 gen-backend:
 	cd backend/api && go generate
 
-setup-db:
+setup-local-db:
 	psql postgres://postgres:postgres@localhost:5432 -c "CREATE DATABASE property_management"
 
-migrations-up:
-	goose -dir migrations postgres "postgres://postgres:postgres@localhost:5432/property_management" up
+migrate:
+	@goose -dir migrations postgres $(DATABASE_URL) up
 
-migrations-status:
-	goose -dir migrations postgres "postgres://postgres:postgres@localhost:5432/property_management" status
-
+migrate-status:
+	@goose -dir migrations postgres $(DATABASE_URL) status
