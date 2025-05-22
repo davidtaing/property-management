@@ -9,6 +9,7 @@ import (
 	"os"
 
 	"github.com/davidtaing/property-management/api"
+	"github.com/davidtaing/property-management/internal/config"
 	"github.com/davidtaing/property-management/internal/middleware"
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -18,7 +19,14 @@ import (
 func main() {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 
-	dbpool, err := pgxpool.New(context.Background(), "postgres://postgres:postgres@localhost:5432/property_management")
+	config, err := config.NewConfig()
+
+	if err != nil {
+		logger.Error(err.Error())
+		os.Exit(1)
+	}
+
+	dbpool, err := pgxpool.New(context.Background(), config.DatabaseURL)
 
 	if err != nil {
 		logger.Error("Unable to connect to the database")
@@ -45,7 +53,6 @@ func main() {
 
 	swagger.Servers = nil
 
-	// create a type that satisfies the `api.ServerInterface`, which contains an implementation of every operation from the generated code
 	server := api.NewServer(dbpool, logger)
 
 	r := mux.NewRouter()
@@ -54,10 +61,8 @@ func main() {
 	// OpenAPI schema.
 	r.Use(oapiMiddleware.OapiRequestValidator(swagger))
 
-	// Add the logging middleware to the router
 	r.Use(middleware.LoggingMiddleware(logger))
 
-	// get an `http.Handler` that we can use
 	h := api.HandlerFromMux(server, r)
 
 	s := &http.Server{
@@ -65,9 +70,7 @@ func main() {
 		Addr:    "0.0.0.0:8080",
 	}
 
-	// fmt.Println("Starting server on port 8080")
 	logger.Info("Starting server on port 8080")
 
-	// And we serve HTTP until the world ends.
 	log.Fatal(s.ListenAndServe())
 }
