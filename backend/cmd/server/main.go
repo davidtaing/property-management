@@ -9,7 +9,7 @@ import (
 	"os"
 
 	"github.com/davidtaing/property-management/api"
-	"github.com/davidtaing/property-management/middleware"
+	"github.com/davidtaing/property-management/internal/middleware"
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v5/pgxpool"
 	oapiMiddleware "github.com/oapi-codegen/nethttp-middleware"
