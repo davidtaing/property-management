@@ -1,5 +1,5 @@
 start-server:
-	cd backend && go run cmd/server/main.go
+	cd backend && go run cmd/server/server.go
 
 gen-openapi:
 	tsp compile --output-dir . typespec/main.tsp
