@@ -653,6 +653,9 @@ components:
           items:
             $ref: '#/components/schemas/Tenant'
 servers:
+  - url: https://property-management.fly.dev
+    description: Production Server
+    variables: {}
   - url: http://localhost:8080
     description: Local Development Server
     variables: {}

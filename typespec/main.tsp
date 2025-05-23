@@ -3,6 +3,7 @@ import "@typespec/http";
 using Http;
 @service(#{ title: "Property Management Service" })
 @server("http://localhost:8080", "Local Development Server")
+@server("https://property-management.fly.dev", "Production Server")
 
 namespace PropertyManagementService;
 
