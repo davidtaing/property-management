@@ -14,6 +14,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v5/pgxpool"
 	oapiMiddleware "github.com/oapi-codegen/nethttp-middleware"
+	"github.com/rs/cors"
 )
 
 func main() {
@@ -65,6 +66,9 @@ func main() {
 
 	h := api.HandlerFromMux(server, r)
 
+	c := setupCors(config, logger)
+	h = c.Handler(h)
+
 	s := &http.Server{
 		Handler: h,
 		Addr:    "0.0.0.0:8080",
@@ -73,4 +77,21 @@ func main() {
 	logger.Info("Starting server on port 8080")
 
 	log.Fatal(s.ListenAndServe())
+}
+
+func setupCors(config *config.Config, logger *slog.Logger) *cors.Cors {
+	allowedOrigins := []string{"*"}
+
+	if config.Env == "PRODUCTION" {
+		allowedOrigins = []string{"https://davidtaing.github.io"}
+	}
+
+	logger.Debug("Allowed origins", "origins", allowedOrigins)
+
+	c := cors.New(cors.Options{
+		AllowedOrigins: allowedOrigins,
+		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+	})
+
+	return c
 }

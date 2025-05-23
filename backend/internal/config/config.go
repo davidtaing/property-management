@@ -9,6 +9,7 @@ import (
 )
 
 type Config struct {
+	Env         string
 	DatabaseURL string
 }
 
@@ -23,5 +24,11 @@ func NewConfig() (*Config, error) {
 		return nil, fmt.Errorf("DATABASE_URL is not set")
 	}
 
-	return &Config{DatabaseURL: databaseURL}, nil
+	env := os.Getenv("ENV")
+
+	if env == "" {
+		env = "DEVELOPMENT"
+	}
+
+	return &Config{DatabaseURL: databaseURL, Env: env}, nil
 }
