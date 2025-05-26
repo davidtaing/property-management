@@ -12,6 +12,7 @@ model Landlord {
     @format("uuid")
     id: string;
     name: string;
+    @format("email")
     email: string;
     mobile: string;
     phone?: string;
@@ -50,6 +51,7 @@ model Tenant {
     @format("uuid")
     property_id: string;
     name: string;
+    @format("email")
     email: string;
     mobile: string;
     phone?: string;
