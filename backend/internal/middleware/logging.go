@@ -28,6 +28,7 @@ func LoggingMiddleware(logger *slog.Logger) mux.MiddlewareFunc {
 			logger.Info("HTTP Request",
 				"method", r.Method,
 				"path", r.URL.Path,
+				"query", r.URL.Query().Encode(),
 				"status", wrapper.statusCode,
 				"duration_ms", duration.Milliseconds(),
 				"remote_addr", r.RemoteAddr,
