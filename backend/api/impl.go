@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/pgtype"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
@@ -82,8 +83,16 @@ func (s *Server) LandlordsCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	id, err := uuid.NewV7()
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	sql := `
 		INSERT INTO landlords (
+			id,
 			name,
 			email,
 			mobile,
@@ -92,7 +101,8 @@ func (s *Server) LandlordsCreate(w http.ResponseWriter, r *http.Request) {
 			$1,
 			$2,
 			$3,
-			$4
+			$4,
+			$5
 		) RETURNING 
 		 	id,
 			name,
@@ -104,6 +114,7 @@ func (s *Server) LandlordsCreate(w http.ResponseWriter, r *http.Request) {
 	row := s.dbpool.QueryRow(
 		context.Background(),
 		sql,
+		id.String(),
 		payload.Name,
 		payload.Email,
 		payload.Mobile,
@@ -320,8 +331,16 @@ func (s *Server) PropertiesCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	id, err := uuid.NewV7()
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	sql := `
 		INSERT INTO properties (
+			id,
 			address_line_1,
 			address_line_2,
 			suburb,
@@ -336,7 +355,8 @@ func (s *Server) PropertiesCreate(w http.ResponseWriter, r *http.Request) {
 			$4,
 			$5,
 			$6,
-			$7
+			$7,
+			$8
 		) RETURNING 
 			id, 
 			address_line_1, 
@@ -352,6 +372,7 @@ func (s *Server) PropertiesCreate(w http.ResponseWriter, r *http.Request) {
 	row := s.dbpool.QueryRow(
 		context.Background(),
 		sql,
+		id.String(),
 		payload.AddressLine1,
 		payload.AddressLine2,
 		payload.Suburb,
@@ -568,8 +589,16 @@ func (s *Server) TenantsCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	id, err := uuid.NewV7()
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	sql := `
 		INSERT INTO tenants (
+			id,
 			name,
 			email,
 			mobile,
@@ -587,7 +616,8 @@ func (s *Server) TenantsCreate(w http.ResponseWriter, r *http.Request) {
 			$5,
 			$6,
 			$7,
-			$8
+			$8,
+			$9
 		) RETURNING 
 		 	id,
 			name,
@@ -607,6 +637,7 @@ func (s *Server) TenantsCreate(w http.ResponseWriter, r *http.Request) {
 	row := s.dbpool.QueryRow(
 		context.Background(),
 		sql,
+		id.String(),
 		payload.Name,
 		payload.Email,
 		payload.Mobile,
