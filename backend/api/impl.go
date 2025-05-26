@@ -961,6 +961,10 @@ func handlePaginationParams(params any) (int, int, int) {
 		limit = int(*limitPtr)
 	}
 
+	if limit > 100 {
+		limit = 100
+	}
+
 	offset := (page - 1) * limit
 	return limit, page, offset
 }
