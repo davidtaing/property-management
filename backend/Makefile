@@ -1,5 +1,5 @@
 start-server:
-	cd backend && go run cmd/server/server.go
+	go run cmd/server/server.go
 
 setup-local-db:
 	psql postgres://postgres:postgres@localhost:5432 -c "CREATE DATABASE property_management"
