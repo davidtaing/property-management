@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"math"
 	"net/http"
 
 	"github.com/google/uuid"
@@ -31,10 +32,25 @@ func NewServer(dbpool *pgxpool.Pool, logger *slog.Logger) *Server {
 	}
 }
 
-func (s *Server) LandlordsList(w http.ResponseWriter, r *http.Request) {
+func (s *Server) LandlordsList(w http.ResponseWriter, r *http.Request, params LandlordsListParams) {
 	landlords := []Landlord{}
 
+	limit, page, offset := handlePaginationParams(params)
+
 	sql := `
+		SELECT COUNT(*) 
+		FROM landlords
+	`
+
+	var total int
+
+	err := s.dbpool.QueryRow(context.Background(), sql).Scan(&total)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	sql = `
 		SELECT 
 			id, 
 			name, 
@@ -43,9 +59,12 @@ func (s *Server) LandlordsList(w http.ResponseWriter, r *http.Request) {
 			phone, 
 			is_archived 
 		FROM landlords
+		ORDER BY name
+		LIMIT $1 
+		OFFSET $2
 	`
 
-	rows, err := s.dbpool.Query(context.Background(), sql)
+	rows, err := s.dbpool.Query(context.Background(), sql, limit, offset)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -72,7 +91,19 @@ func (s *Server) LandlordsList(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(LandlordList{Items: landlords})
+
+	resp := LandlordList{
+		Items: landlords,
+		Pagination: PaginatedMetadata{
+			Total:       int32(total),
+			Count:       int32(len(landlords)),
+			PerPage:     int32(limit),
+			CurrentPage: int32(page),
+			TotalPages:  int32(math.Ceil(float64(total) / float64(limit))),
+		},
+	}
+
+	json.NewEncoder(w).Encode(resp)
 }
 
 func (s *Server) LandlordsCreate(w http.ResponseWriter, r *http.Request) {
@@ -268,10 +299,25 @@ func (s *Server) LandlordsUpdate(w http.ResponseWriter, r *http.Request, id stri
 	json.NewEncoder(w).Encode(updatedLandlord)
 }
 
-func (s *Server) PropertiesList(w http.ResponseWriter, r *http.Request) {
+func (s *Server) PropertiesList(w http.ResponseWriter, r *http.Request, params PropertiesListParams) {
 	properties := []Property{}
 
+	limit, page, offset := handlePaginationParams(params)
+
 	sql := `
+		SELECT COUNT(*) 
+		FROM properties
+	`
+
+	var total int
+
+	err := s.dbpool.QueryRow(context.Background(), sql).Scan(&total)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	sql = `
 		SELECT 
 			id,
 			address_line_1,
@@ -283,9 +329,11 @@ func (s *Server) PropertiesList(w http.ResponseWriter, r *http.Request) {
 			management_fee,
 			is_archived
 		FROM properties
+		LIMIT $1 
+		OFFSET $2
 	`
 
-	rows, err := s.dbpool.Query(context.Background(), sql)
+	rows, err := s.dbpool.Query(context.Background(), sql, limit, offset)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -320,7 +368,19 @@ func (s *Server) PropertiesList(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(PropertyList{Items: properties})
+
+	resp := PropertyList{
+		Items: properties,
+		Pagination: PaginatedMetadata{
+			Total:       int32(total),
+			Count:       int32(len(properties)),
+			PerPage:     int32(limit),
+			CurrentPage: int32(page),
+			TotalPages:  int32(math.Ceil(float64(total) / float64(limit))),
+		},
+	}
+
+	json.NewEncoder(w).Encode(resp)
 }
 
 func (s *Server) PropertiesCreate(w http.ResponseWriter, r *http.Request) {
@@ -533,10 +593,25 @@ func (s *Server) PropertiesUpdate(w http.ResponseWriter, r *http.Request, id str
 	json.NewEncoder(w).Encode(updatedProperty)
 }
 
-func (s *Server) TenantsList(w http.ResponseWriter, r *http.Request) {
+func (s *Server) TenantsList(w http.ResponseWriter, r *http.Request, params TenantsListParams) {
 	tenants := []Tenant{}
 
+	limit, page, offset := handlePaginationParams(params)
+
 	sql := `
+		SELECT COUNT(*) 
+		FROM tenants
+	`
+
+	var total int
+
+	err := s.dbpool.QueryRow(context.Background(), sql).Scan(&total)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	sql = `
 		SELECT 
 			id,
 			name,
@@ -552,9 +627,11 @@ func (s *Server) TenantsList(w http.ResponseWriter, r *http.Request) {
 			is_archived,
 			property_id
 		FROM tenants
+		LIMIT $1 
+		OFFSET $2
 	`
 
-	rows, err := s.dbpool.Query(context.Background(), sql)
+	rows, err := s.dbpool.Query(context.Background(), sql, limit, offset)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -578,7 +655,19 @@ func (s *Server) TenantsList(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(TenantList{Items: tenants})
+
+	resp := TenantList{
+		Items: tenants,
+		Pagination: PaginatedMetadata{
+			Total:       int32(total),
+			Count:       int32(len(tenants)),
+			PerPage:     int32(limit),
+			CurrentPage: int32(page),
+			TotalPages:  int32(math.Ceil(float64(total) / float64(limit))),
+		},
+	}
+
+	json.NewEncoder(w).Encode(resp)
 }
 
 func (s *Server) TenantsCreate(w http.ResponseWriter, r *http.Request) {
@@ -841,4 +930,37 @@ func handleLandlordErrors(err error) Error {
 	}
 
 	return Error{Message: "Internal server error", Code: http.StatusInternalServerError}
+}
+
+func handlePaginationParams(params any) (int, int, int) {
+	var pagePtr *int32
+	var limitPtr *int32
+
+	switch p := params.(type) {
+	case LandlordsListParams:
+		pagePtr = p.Page
+		limitPtr = p.Limit
+	case TenantsListParams:
+		pagePtr = p.Page
+		limitPtr = p.Limit
+	case PropertiesListParams:
+		pagePtr = p.Page
+		limitPtr = p.Limit
+	default:
+		// Optional: handle unexpected types
+		return 20, 1, 0 // default: page=1, limit=20
+	}
+
+	page := 1
+	if pagePtr != nil {
+		page = int(*pagePtr)
+	}
+
+	limit := 20
+	if limitPtr != nil {
+		limit = int(*limitPtr)
+	}
+
+	offset := (page - 1) * limit
+	return limit, page, offset
 }

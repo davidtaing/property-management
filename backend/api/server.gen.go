@@ -38,7 +38,17 @@ type Landlord struct {
 
 // LandlordList defines model for LandlordList.
 type LandlordList struct {
-	Items []Landlord `json:"items"`
+	Items      []Landlord        `json:"items"`
+	Pagination PaginatedMetadata `json:"pagination"`
+}
+
+// PaginatedMetadata defines model for PaginatedMetadata.
+type PaginatedMetadata struct {
+	Count       int32 `json:"count"`
+	CurrentPage int32 `json:"current_page"`
+	PerPage     int32 `json:"per_page"`
+	Total       int32 `json:"total"`
+	TotalPages  int32 `json:"total_pages"`
 }
 
 // Property defines model for Property.
@@ -56,7 +66,8 @@ type Property struct {
 
 // PropertyList defines model for PropertyList.
 type PropertyList struct {
-	Items []Property `json:"items"`
+	Items      []Property        `json:"items"`
+	Pagination PaginatedMetadata `json:"pagination"`
 }
 
 // Tenant defines model for Tenant.
@@ -78,7 +89,26 @@ type Tenant struct {
 
 // TenantList defines model for TenantList.
 type TenantList struct {
-	Items []Tenant `json:"items"`
+	Items      []Tenant          `json:"items"`
+	Pagination PaginatedMetadata `json:"pagination"`
+}
+
+// LandlordsListParams defines parameters for LandlordsList.
+type LandlordsListParams struct {
+	Page  *int32 `form:"page,omitempty" json:"page,omitempty"`
+	Limit *int32 `form:"limit,omitempty" json:"limit,omitempty"`
+}
+
+// PropertiesListParams defines parameters for PropertiesList.
+type PropertiesListParams struct {
+	Page  *int32 `form:"page,omitempty" json:"page,omitempty"`
+	Limit *int32 `form:"limit,omitempty" json:"limit,omitempty"`
+}
+
+// TenantsListParams defines parameters for TenantsList.
+type TenantsListParams struct {
+	Page  *int32 `form:"page,omitempty" json:"page,omitempty"`
+	Limit *int32 `form:"limit,omitempty" json:"limit,omitempty"`
 }
 
 // LandlordsCreateJSONRequestBody defines body for LandlordsCreate for application/json ContentType.
@@ -103,7 +133,7 @@ type TenantsUpdateJSONRequestBody = Tenant
 type ServerInterface interface {
 
 	// (GET /landlords)
-	LandlordsList(w http.ResponseWriter, r *http.Request)
+	LandlordsList(w http.ResponseWriter, r *http.Request, params LandlordsListParams)
 
 	// (POST /landlords)
 	LandlordsCreate(w http.ResponseWriter, r *http.Request)
@@ -118,7 +148,7 @@ type ServerInterface interface {
 	LandlordsUpdate(w http.ResponseWriter, r *http.Request, id string)
 
 	// (GET /properties)
-	PropertiesList(w http.ResponseWriter, r *http.Request)
+	PropertiesList(w http.ResponseWriter, r *http.Request, params PropertiesListParams)
 
 	// (POST /properties)
 	PropertiesCreate(w http.ResponseWriter, r *http.Request)
@@ -133,7 +163,7 @@ type ServerInterface interface {
 	PropertiesUpdate(w http.ResponseWriter, r *http.Request, id string)
 
 	// (GET /tenants)
-	TenantsList(w http.ResponseWriter, r *http.Request)
+	TenantsList(w http.ResponseWriter, r *http.Request, params TenantsListParams)
 
 	// (POST /tenants)
 	TenantsCreate(w http.ResponseWriter, r *http.Request)
@@ -160,8 +190,29 @@ type MiddlewareFunc func(http.Handler) http.Handler
 // LandlordsList operation middleware
 func (siw *ServerInterfaceWrapper) LandlordsList(w http.ResponseWriter, r *http.Request) {
 
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params LandlordsListParams
+
+	// ------------- Optional query parameter "page" -------------
+
+	err = runtime.BindQueryParameter("form", false, false, "page", r.URL.Query(), &params.Page)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "page", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameter("form", false, false, "limit", r.URL.Query(), &params.Limit)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
+		return
+	}
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.LandlordsList(w, r)
+		siw.Handler.LandlordsList(w, r, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -263,8 +314,29 @@ func (siw *ServerInterfaceWrapper) LandlordsUpdate(w http.ResponseWriter, r *htt
 // PropertiesList operation middleware
 func (siw *ServerInterfaceWrapper) PropertiesList(w http.ResponseWriter, r *http.Request) {
 
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params PropertiesListParams
+
+	// ------------- Optional query parameter "page" -------------
+
+	err = runtime.BindQueryParameter("form", false, false, "page", r.URL.Query(), &params.Page)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "page", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameter("form", false, false, "limit", r.URL.Query(), &params.Limit)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
+		return
+	}
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.PropertiesList(w, r)
+		siw.Handler.PropertiesList(w, r, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -366,8 +438,29 @@ func (siw *ServerInterfaceWrapper) PropertiesUpdate(w http.ResponseWriter, r *ht
 // TenantsList operation middleware
 func (siw *ServerInterfaceWrapper) TenantsList(w http.ResponseWriter, r *http.Request) {
 
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params TenantsListParams
+
+	// ------------- Optional query parameter "page" -------------
+
+	err = runtime.BindQueryParameter("form", false, false, "page", r.URL.Query(), &params.Page)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "page", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameter("form", false, false, "limit", r.URL.Query(), &params.Limit)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
+		return
+	}
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.TenantsList(w, r)
+		siw.Handler.TenantsList(w, r, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -615,26 +708,28 @@ func HandlerWithOptions(si ServerInterface, options GorillaServerOptions) http.H
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/+xaXY/iNhf+K5bf9zIL7OxUWuVu+6Gq0lQdqduraoRMfACvEju1j2kpyn+vbIeQDIEB",
-	"BGyyyhUkcc7nc87xk2RDE5XlSoJEQ+MNNckSMub//qS10u5PrlUOGgX404ni4H7nSmcMaUyFxA8PNKK4",
-	"ziEcwgI0LSKagTFs4VeXFw1qIRe0KCKq4S8rNHAa/xlk7ta/VMLU7Ask6GQ9MclTpfm+QZAxkbboiKjg",
-	"DUOtFZw6xYz/JtM1jVFbiFpuM1Omk6VYQfN+zhDeociAttyUqZlIodUMybL2C/lSyROi4632QqLS2Urd",
-	"sUg9CYP70RIIWfPP/zXMaUz/N94hYVzCYFxFvagUMa3Zet9GL63NnOegfr1vCuNcgzHTVEiYvm+NUGPJ",
-	"w1dPclqGY9qudB8UTLIFZCBxOodm1XBlZ2lNibTZLFRNrgxui2xPokGGB67YmdWzE9FUdyR6nYhKVs2W",
-	"reY9n46l/BoIrOBzOQI/g2QSz2kcIPmUl4FuIKMtyV3vMkqLhZAsnRpkGk/361B3irZhXJ9aBmcqRtCZ",
-	"kAyFkpfdpIEZJVtNX7GEIZwqtq106s4fasvtQW8Eogayw5i9RgGV6L+0fNw6IefKR1OgA19V3+TXqheQ",
-	"30GvROL8WoE2woWfTkaT0cRDMAfJckFj+sGfimjOcOlNH29bkT9agPfXifep/IXTuBpoxofDmW1yJU0I",
-	"xsNkEnYlEiEUOcvzVCT+9vGXEgchGKdOO6/He87BJFrkGPz5vATiYgYGyZIZYmySAHDgI+fkd1e0JOy9",
-	"WkxwYQZNoLweUWQL4/JXTeqXcoQcieMPGgIES2e+V3x99SAG63cQc22w2Eve+xvpPTFxhElOGJHwN9Fg",
-	"lNUJ+AUzAEkSHyZOmCHMXbYp+kQ/3iPRzmQTkp0om3IiFRIrOWiDzmisucQtEFREyBVLBSdmLZH90y1M",
-	"FlGt0scbwQunjkMKoREfQOqnMCF9w9AsAwTtJG+ocIpdE9n24JiWY7eOt6jm2uvW/nKHRnJ+E3m8YkUc",
-	"TNinJAFjiDDESmZxqbT4t9L/eF9sM+mAPRdNSAOv6rFrvfX4iPoZcADrANbObATsMbD+kZdb0dvg9Wvv",
-	"LbpRIr3ZKwzV3O1qdluoJhFsHUXP1ZJb06XGY56e0aXqsdJhurQL5E350u4B1335UlPvwJe6Bcpmsb9J",
-	"mHZY7SljugiNw9jq6thqtNc3xlQPKdOA1m8Xra2UaYfW3nGm8/YX3aiRgTMN5Xy1bRT6F2CHCVN4QXZz",
-	"tlR7o9czrlS+QTzMlMoI3pQmbV9j3pck1bUOFKlLWKxV9pvsqMRnT6nRBRgcZlNXZ1Otlx4bRj3kRANM",
-	"v02YtvKhEqa9I0Pn7CK6UBoDERqq+BqbpSKiwfBQn837n7XiNnEHJIiiEbU6pTFdIuYmHm+fRK/f7T7+",
-	"Hc3T9YjDihbRa3lPKmEp+RFWkKq8+jjwldh4PE7duqUyGH+cfJxQV/Ol5Ztt16h9f16dq30RXJ3bVthL",
-	"8V8AAAD//wV4Mc7RMAAA",
+	"H4sIAAAAAAAC/+xbTW/bOBP+KwTf96jGbpoFCt26H1gskGIDbPdUBAYtjm0WFKmSQ2+9gf/7ghQtS5Hs",
+	"yIGTyoVOsSVyZjjzzMcjOQ8003mhFSi0NH2gNltBzsLH34zRxn8ojC7AoIBwOdMc/N+FNjlDmlKh8N01",
+	"TShuCii/whIM3SY0B2vZMqyONy0aoZZ0u02oga9OGOA0/VzK3K+/r4Tp+RfI0Mu6ZYpLbXjbIMiZkB06",
+	"Eip4w1DnBKdeMeN/KrmhKRoHScc2O2MmW4k1NPdzhvAGRQ60Y1Ou50JCpxmK5d03ipVWPbwTrA5CknjY",
+	"St0xT90Ki21vCYS8+eH/BhY0pf+b7JEwiTCYVF7fVoqYMWwTrGdLoRgKrZ6ScleuBP4RkHGGrH3EYExD",
+	"ZtfR2oI64OkU9sRn5owBhbMigrTHlgLMKctRI5OnrA3Cba8dj1xYqkqiA2qWPjpnU1Gnl0uHbtrOZZwb",
+	"sHYmhYLZ205MN5Zcf/e0lBHAs26l7TRmii0h995aQDPKXLu5rClRLp9HUGiLu7LYkmiR4YE7bu7MvGf+",
+	"1w+SPA5EJatmy05z60zHQn6OmlHBZxg14xMopvCUtgGKz3gMWgNlXYAZeo/RRnj3yJlFZrD/uQ71pmTn",
+	"xk3flDpRMYLJYzyft8kAsyW+WsvWLGMIfcV2pWH98IeacrfTG46ogewwZs+RjBH9Q0hFv0mohQ6REeiB",
+	"XNUd8rGqUeQvMGuReR+twdhgH51eTa+mAc4FKFYImtJ34ZLXiavghsmuRIZvSwi+8+KDQX9wmlajkQ2u",
+	"9XsNywHBWJp+fqDwrZChjC+YtOCtpSn96sBsdrFOaeyhpW969ul+kqXIBZ4o+t7HwRZa2RIc19NpOQQp",
+	"hLLosaKQIgsumHyJebHX0Gf2C74K0eNgMyOKEjP00wqIBwFYJCtmiXVZBsCBX/lA/XRGS0om0mGChwoY",
+	"AvF+QpEtfSj3bOE+tucjWPjFQJmS8TA/a745uxNL6/c549vCthW8ty+kt2fgCFOcMKLgH2LAamcyCAvm",
+	"AIpkwU2cMEuYv+0khkDfvEagvcm2DHamneREaSROcTAWvdFYOxJ3QFATodZMCk7sRiH7NixMbpNatZo8",
+	"CL716jhIKBvTAaR+KCeGduEK5cQXwn01iWNIHW/10vK41b1GITm9iNycMSMOBuxDloG1RFjiFHO40kb8",
+	"W+m/eV1sM+WBvRBNSAOv8nFotfV4m/0dcATrCNbBDALuGFj/LuJo/jJ4/d6zxTBS5GJmhTGbh53NfoRq",
+	"EuPOVnRXLRkp39MRaTwGvDDKVz12PEz59mB4Uc63fwD6upyvqXfkfMMCZbNgPUn69li9UNb3LDSOrXeo",
+	"rbdRXp9otRdI+0a0/rho7aR9e7ReHO87bb4YRo6MvG9M57ONURheah4mfeVLz5Hx9YhF7U3zhfG9+Gb7",
+	"MNuLKHhRqrd7vf66RK+udaR5Q8JirTo9yfAiPi+U3j0Dg2N/HWp/rdXSYw31AnndCNMfE6adnC7C9OII",
+	"3SlTxBBSYyRzYxafY1jaJrQ0vMzP5v47o7nL/BdSiqIJdUbSlK4QC5tOdk/TN2/2P3C/WsjNFYc19Xys",
+	"Ke9WZ0ySX2ENUhfVD00fiU0nE+nXrbTF9P30/ZT6nI+WP+yqRu2/YqprtV+9V9d2GXa//S8AAP//9/ol",
+	"4mc1AAA=",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

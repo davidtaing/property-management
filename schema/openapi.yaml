@@ -10,7 +10,21 @@ paths:
   /landlords:
     get:
       operationId: Landlords_list
-      parameters: []
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+          explode: false
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+          explode: false
       responses:
         '200':
           description: The request has succeeded.
@@ -177,7 +191,21 @@ paths:
   /properties:
     get:
       operationId: Properties_list
-      parameters: []
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+          explode: false
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+          explode: false
       responses:
         '200':
           description: The request has succeeded.
@@ -344,7 +372,21 @@ paths:
   /tenants:
     get:
       operationId: Tenants_list
-      parameters: []
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+          explode: false
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+          explode: false
       responses:
         '200':
           description: The request has succeeded.
@@ -548,11 +590,38 @@ components:
       type: object
       required:
         - items
+        - pagination
       properties:
         items:
           type: array
           items:
             $ref: '#/components/schemas/Landlord'
+        pagination:
+          $ref: '#/components/schemas/PaginatedMetadata'
+    PaginatedMetadata:
+      type: object
+      required:
+        - total
+        - count
+        - per_page
+        - current_page
+        - total_pages
+      properties:
+        total:
+          type: integer
+          format: int32
+        count:
+          type: integer
+          format: int32
+        per_page:
+          type: integer
+          format: int32
+        current_page:
+          type: integer
+          format: int32
+        total_pages:
+          type: integer
+          format: int32
     Property:
       type: object
       required:
@@ -591,11 +660,14 @@ components:
       type: object
       required:
         - items
+        - pagination
       properties:
         items:
           type: array
           items:
             $ref: '#/components/schemas/Property'
+        pagination:
+          $ref: '#/components/schemas/PaginatedMetadata'
     Tenant:
       type: object
       required:
@@ -647,11 +719,14 @@ components:
       type: object
       required:
         - items
+        - pagination
       properties:
         items:
           type: array
           items:
             $ref: '#/components/schemas/Tenant'
+        pagination:
+          $ref: '#/components/schemas/PaginatedMetadata'
 servers:
   - url: https://property-management.fly.dev
     description: Production Server

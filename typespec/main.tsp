@@ -20,6 +20,7 @@ model Landlord {
 
 model LandlordList {
   items: Landlord[];
+  pagination: PaginatedMetadata;
 }
 
 model Property {
@@ -39,6 +40,7 @@ model Property {
 
 model PropertyList {
   items: Property[];
+  pagination: PaginatedMetadata;
 }
 
 model Tenant {
@@ -62,6 +64,7 @@ model Tenant {
 
 model TenantList {
   items: Tenant[];
+  pagination: PaginatedMetadata;
 }
 
 @error
@@ -70,11 +73,19 @@ model Error {
   message: string;
 }
 
+model PaginatedMetadata {
+  total: int32;
+  count: int32;
+  per_page: int32;
+  current_page: int32;
+  total_pages: int32;
+}
+
 @route("/landlords")
 namespace Landlords {
   @tag("Landlord")
   @get
-  op list(): {
+  op list(@query page?: int32, @query limit?: int32): {
     @statusCode statusCode: 200;
     @body landlords: LandlordList;
   } | {
@@ -151,7 +162,7 @@ namespace Landlords {
 namespace Properties {
   @tag("Property")
   @get
-  op list(): {
+  op list(@query page?: int32, @query limit?: int32): {
     @statusCode statusCode: 200;
     @body properties: PropertyList;
   } | {
@@ -228,7 +239,7 @@ namespace Properties {
 namespace Tenants {
   @tag("Tenant")
   @get
-  op list(): {
+  op list(@query page?: int32, @query limit?: int32): {
     @statusCode statusCode: 200;
     @body tenants: TenantList;
   } | {
