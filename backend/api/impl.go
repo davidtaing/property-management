@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"math"
 	"net/http"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/pgtype"
@@ -37,20 +38,28 @@ func (s *Server) LandlordsList(w http.ResponseWriter, r *http.Request, params La
 
 	limit, page, offset := handlePaginationParams(params)
 
-	sql := `
+	conditions := map[string]interface{}{
+		"name": params.Name,
+	}
+
+	whereClause, queryParams, paramCount := buildWhereClause(conditions)
+
+	// Get total count
+	countSQL := fmt.Sprintf(`
 		SELECT COUNT(*) 
 		FROM landlords
-	`
+		%s`, whereClause)
 
 	var total int
-
-	err := s.dbpool.QueryRow(context.Background(), sql).Scan(&total)
+	err := s.dbpool.QueryRow(context.Background(), countSQL, queryParams...).Scan(&total)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	sql = `
+	// Get paginated results
+	queryParams = append(queryParams, limit, offset)
+	listSQL := fmt.Sprintf(`
 		SELECT 
 			id, 
 			name, 
@@ -59,12 +68,12 @@ func (s *Server) LandlordsList(w http.ResponseWriter, r *http.Request, params La
 			phone, 
 			is_archived 
 		FROM landlords
+		%s
 		ORDER BY name
-		LIMIT $1 
-		OFFSET $2
-	`
+		LIMIT $%d 
+		OFFSET $%d`, whereClause, paramCount, paramCount+1)
 
-	rows, err := s.dbpool.Query(context.Background(), sql, limit, offset)
+	rows, err := s.dbpool.Query(context.Background(), listSQL, queryParams...)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -89,9 +98,6 @@ func (s *Server) LandlordsList(w http.ResponseWriter, r *http.Request, params La
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-
 	resp := LandlordList{
 		Items: landlords,
 		Pagination: PaginatedMetadata{
@@ -103,7 +109,17 @@ func (s *Server) LandlordsList(w http.ResponseWriter, r *http.Request, params La
 		},
 	}
 
-	json.NewEncoder(w).Encode(resp)
+	fmt.Println(resp)
+
+	err = json.NewEncoder(w).Encode(resp)
+	if err != nil {
+		s.logger.Error("error encoding response", "error", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 }
 
 func (s *Server) LandlordsCreate(w http.ResponseWriter, r *http.Request) {
@@ -304,20 +320,29 @@ func (s *Server) PropertiesList(w http.ResponseWriter, r *http.Request, params P
 
 	limit, page, offset := handlePaginationParams(params)
 
-	sql := `
+	conditions := map[string]interface{}{
+		"full_address": params.Address,
+	}
+
+	whereClause, queryParams, paramCount := buildWhereClause(conditions)
+
+	sql := fmt.Sprintf(`
 		SELECT COUNT(*) 
 		FROM properties
-	`
+		%s
+	`, whereClause)
 
 	var total int
 
-	err := s.dbpool.QueryRow(context.Background(), sql).Scan(&total)
+	err := s.dbpool.QueryRow(context.Background(), sql, queryParams...).Scan(&total)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	sql = `
+	queryParams = append(queryParams, limit, offset)
+
+	sql = fmt.Sprintf(`
 		SELECT 
 			id,
 			address_line_1,
@@ -329,11 +354,12 @@ func (s *Server) PropertiesList(w http.ResponseWriter, r *http.Request, params P
 			management_fee,
 			is_archived
 		FROM properties
-		LIMIT $1 
-		OFFSET $2
-	`
+		%s
+		LIMIT $%d
+		OFFSET $%d
+	`, whereClause, paramCount, paramCount+1)
 
-	rows, err := s.dbpool.Query(context.Background(), sql, limit, offset)
+	rows, err := s.dbpool.Query(context.Background(), sql, queryParams...)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -598,20 +624,29 @@ func (s *Server) TenantsList(w http.ResponseWriter, r *http.Request, params Tena
 
 	limit, page, offset := handlePaginationParams(params)
 
-	sql := `
+	conditions := map[string]interface{}{
+		"name": params.Name,
+	}
+
+	whereClause, queryParams, paramCount := buildWhereClause(conditions)
+
+	sql := fmt.Sprintf(`
 		SELECT COUNT(*) 
-		FROM tenants
-	`
+		FROM tenants 
+		%s
+	`, whereClause)
 
 	var total int
 
-	err := s.dbpool.QueryRow(context.Background(), sql).Scan(&total)
+	err := s.dbpool.QueryRow(context.Background(), sql, queryParams...).Scan(&total)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	sql = `
+	queryParams = append(queryParams, limit, offset)
+
+	sql = fmt.Sprintf(`
 		SELECT 
 			id,
 			name,
@@ -627,11 +662,12 @@ func (s *Server) TenantsList(w http.ResponseWriter, r *http.Request, params Tena
 			is_archived,
 			property_id
 		FROM tenants
-		LIMIT $1 
-		OFFSET $2
-	`
+		%s
+		LIMIT $%d
+		OFFSET $%d
+	`, whereClause, paramCount, paramCount+1)
 
-	rows, err := s.dbpool.Query(context.Background(), sql, limit, offset)
+	rows, err := s.dbpool.Query(context.Background(), sql, queryParams...)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -967,4 +1003,43 @@ func handlePaginationParams(params any) (int, int, int) {
 
 	offset := (page - 1) * limit
 	return limit, page, offset
+}
+
+// buildWhereClause constructs a SQL WHERE clause from a map of conditions
+// conditions is a map of column names to their search values.
+//
+// Returns the WHERE clause string, query parameters, and the next parameter number
+func buildWhereClause(conditions map[string]interface{}) (string, []interface{}, int) {
+	if len(conditions) == 0 {
+		return "", []interface{}{}, 1
+	}
+
+	clauses := []string{}
+	params := []interface{}{}
+	paramCount := 1
+
+	for column, value := range conditions {
+		if value == nil {
+			continue
+		}
+
+		switch column {
+		case "name", "full_address":
+			if v, ok := value.(*string); ok && v != nil {
+				clauses = append(clauses, fmt.Sprintf("%s ILIKE $%d", column, paramCount))
+				params = append(params, "%"+*v+"%")
+				paramCount++
+			}
+		default:
+			clauses = append(clauses, fmt.Sprintf("%s = $%d", column, paramCount))
+			params = append(params, value)
+			paramCount++
+		}
+	}
+
+	if len(clauses) == 0 {
+		return "", []interface{}{}, 1
+	}
+
+	return "WHERE " + strings.Join(clauses, " AND "), params, paramCount
 }

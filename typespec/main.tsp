@@ -87,7 +87,7 @@ model PaginatedMetadata {
 namespace Landlords {
   @tag("Landlord")
   @get
-  op list(@query page?: int32, @query limit?: int32): {
+  op list(@query page?: int32, @query limit?: int32, @query name?: string): {
     @statusCode statusCode: 200;
     @body landlords: LandlordList;
   } | {
@@ -164,7 +164,7 @@ namespace Landlords {
 namespace Properties {
   @tag("Property")
   @get
-  op list(@query page?: int32, @query limit?: int32): {
+  op list(@query page?: int32, @query limit?: int32, @query address?: string): {
     @statusCode statusCode: 200;
     @body properties: PropertyList;
   } | {
@@ -241,7 +241,7 @@ namespace Properties {
 namespace Tenants {
   @tag("Tenant")
   @get
-  op list(@query page?: int32, @query limit?: int32): {
+  op list(@query page?: int32, @query limit?: int32, @query name?: string): {
     @statusCode statusCode: 200;
     @body tenants: TenantList;
   } | {

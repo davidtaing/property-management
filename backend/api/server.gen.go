@@ -95,20 +95,23 @@ type TenantList struct {
 
 // LandlordsListParams defines parameters for LandlordsList.
 type LandlordsListParams struct {
-	Page  *int32 `form:"page,omitempty" json:"page,omitempty"`
-	Limit *int32 `form:"limit,omitempty" json:"limit,omitempty"`
+	Page  *int32  `form:"page,omitempty" json:"page,omitempty"`
+	Limit *int32  `form:"limit,omitempty" json:"limit,omitempty"`
+	Name  *string `form:"name,omitempty" json:"name,omitempty"`
 }
 
 // PropertiesListParams defines parameters for PropertiesList.
 type PropertiesListParams struct {
-	Page  *int32 `form:"page,omitempty" json:"page,omitempty"`
-	Limit *int32 `form:"limit,omitempty" json:"limit,omitempty"`
+	Page    *int32  `form:"page,omitempty" json:"page,omitempty"`
+	Limit   *int32  `form:"limit,omitempty" json:"limit,omitempty"`
+	Address *string `form:"address,omitempty" json:"address,omitempty"`
 }
 
 // TenantsListParams defines parameters for TenantsList.
 type TenantsListParams struct {
-	Page  *int32 `form:"page,omitempty" json:"page,omitempty"`
-	Limit *int32 `form:"limit,omitempty" json:"limit,omitempty"`
+	Page  *int32  `form:"page,omitempty" json:"page,omitempty"`
+	Limit *int32  `form:"limit,omitempty" json:"limit,omitempty"`
+	Name  *string `form:"name,omitempty" json:"name,omitempty"`
 }
 
 // LandlordsCreateJSONRequestBody defines body for LandlordsCreate for application/json ContentType.
@@ -208,6 +211,14 @@ func (siw *ServerInterfaceWrapper) LandlordsList(w http.ResponseWriter, r *http.
 	err = runtime.BindQueryParameter("form", false, false, "limit", r.URL.Query(), &params.Limit)
 	if err != nil {
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "name" -------------
+
+	err = runtime.BindQueryParameter("form", false, false, "name", r.URL.Query(), &params.Name)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "name", Err: err})
 		return
 	}
 
@@ -335,6 +346,14 @@ func (siw *ServerInterfaceWrapper) PropertiesList(w http.ResponseWriter, r *http
 		return
 	}
 
+	// ------------- Optional query parameter "address" -------------
+
+	err = runtime.BindQueryParameter("form", false, false, "address", r.URL.Query(), &params.Address)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "address", Err: err})
+		return
+	}
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.PropertiesList(w, r, params)
 	}))
@@ -456,6 +475,14 @@ func (siw *ServerInterfaceWrapper) TenantsList(w http.ResponseWriter, r *http.Re
 	err = runtime.BindQueryParameter("form", false, false, "limit", r.URL.Query(), &params.Limit)
 	if err != nil {
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "name" -------------
+
+	err = runtime.BindQueryParameter("form", false, false, "name", r.URL.Query(), &params.Name)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "name", Err: err})
 		return
 	}
 
@@ -708,28 +735,28 @@ func HandlerWithOptions(si ServerInterface, options GorillaServerOptions) http.H
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/+xb247bNhN+FYH/f6msnc0WCHSXHlAU2KALNL0KFgYtjm0GFKmQQzfuwu9e8GBZsmWv",
-	"vPW6cqCrtSVyZjjzzeGTvE8kV0WpJEg0JHsiJl9AQf3HX7RW2n0otSpBIwd/OVcM3N+Z0gVFkhEu8d0t",
-	"SQmuSghfYQ6arFNSgDF07lfHmwY1l3OyXqdEw1fLNTCSfQ4yt+sfK2Fq+gVydLLuqWRCabZvEBSUi4ZF",
-	"4Uq6qzQlnDXWWcsZcZZQ9rsUK5KhttC2zUyozhd8Cc39jCK8QV5Am65CTbloO3tKJC3ab5QLJTu4y1vt",
-	"haTVWaO6Y6675wb33ccRiuaH/2uYkYz8b7SFxijiYlSFYV0polrTlbeezrmkyJV8TspDWAnsIyBlFOn+",
-	"Eb0xDZltR9sX1IJXK7EjYHOrNUiclBG1HbaUoE9ZjgqpOGWtF2467dhxYVCVRgfULN05Z1NRq5eDQ1f7",
-	"zqWMaTBmIriEydtWTDeW3LYuuWRaigjgSbvS/TSmks6hcN6aQTPKTNmpqCmRtphGUCiDmzq5J9EgxQN3",
-	"7NTqacf8rx8k3Q1EJatmy0bz3pmOhfwcNaOCTz9qxieQVOK/6iMg2YTFKDZgd41NR2nu/CUmBqnG7uc6",
-	"1KzSjV9XXXPsRMUIuogBftkmDdQEwO0tW9KcInQV25aX9cMf6tLtTm84ogaywyA+R3bGdOhDbrpNXM6U",
-	"jwxHB+SqECUfq6KV/AF6yXPnoyVo4+0j45vxzdjDuQRJS04y8s5fcjpx4d0w2tRM/20O3ndOvDfoN0ay",
-	"alYy3rVur6YFIGhDss9PBL6Vwtf1GRUGnLUkI18t6NUm1hmJTTX4pmPj7iZZ8ILjiaIfXRxMqaQJ4Lgd",
-	"j8NUJBFCFaRlKXjuXTD6EvNiq6HLMOh95aPHwOSalwEz5NMCEgcCMJgsqEmMzXMABuzGBeqHM1oSuEqL",
-	"CQ4qoBOI91OCdO5CueUTj7FfH8HCTxpCSsbD/KjY6uxODNZvc8a1hfVe8N6+kt6OgUuoZAlNJPyVaDDK",
-	"6hz8gimATHLvJpZQk1B32wr0gb67RKCdySYEO1dWsEQqTKxkoA06o7F2JGYhQZVwuaSCs8SsJNJv/cLk",
-	"Oq1Vq9ETZ2unjoGA0JgOIPVDmBj2C5cvJ64QbqtJHEPqeKuXlt1Wd4lCcnoRuTtjRhwM2Ic8B2MSbhIr",
-	"qcWF0vzvSv/dZbFNpQP2jDchDazKx77V1uNt9lfAAawDWHszCNhjYP2zjKP56+D1v54t+pEiVzMrDNnc",
-	"72x2I1STGLe2oodqyUD5no9I47nglVG+6jnkYcq3BcOrcr7tE9HLcr6m3oHz9QuUzYL1LOnbYvVKWd+L",
-	"0Di03r623kZ5fabVXiHtG9D6/aK1lfZt0Xp1vO+0+aIfOTLwviGdzzZGoX+peZj0hZeeA+PrEIvam+Yr",
-	"43vxzfZhthdR8KpUb/N6/bJEr651oHl9wmKtOj3L8CI+r5TevQCDQ3/ta3+t1dJjDfUKed0A0+8Tpq2c",
-	"LsL06gjdKVNEH1JjIHNDFp9jWFqnJBge8rO5/0ErZnP3JQmiSEqsFiQjC8TSZKPN0/TVm+0v3m9mYnXD",
-	"YEkcH2vKu1c5FcnPsAShyuqHpjtis9FIuHULZTB7P34/Ji7no+VPm6pR+zeZ6lrtZ/DVtU2GPa7/CQAA",
-	"//9PatEjiTUAAA==",
+	"H4sIAAAAAAAC/+xb247bNhN+FYH/f6msnUOBQHfpAUWBDbpA06tgYdDi2GYgkQo5dOMu/O4FD9bBkr3y",
+	"1uuVU12tLZEzw5lvDp/kfSCpzAspQKAmyQPR6Qpy6j7+opRU9kOhZAEKObjLqWRg/y6kyimShHCBb9+Q",
+	"mOCmAP8VlqDINiY5aE2XbnW4qVFxsSTbbUwUfDVcASPJZy+zWn9fCpPzL5CilXVLBcukYm2DIKc8a1jk",
+	"r8T7SmPCWWOdMZwRawllv4tsQxJUBrq26RlV6YqvobmfUYRXyHPo0pXLOc+6zh4TQfPuG8VKih7uclY7",
+	"IXF51qDumOtuuca2+zhC3vzwfwULkpD/TSpoTAIuJmUYtqUiqhTdOOvpkguKXIrHpNz5lcA+AlJGkbaP",
+	"6IxpyOw6WltQB16NwJ6ATY1SIHBWBNT22FKAOmU5SqTZKWudcN1rx54Lvao4OKBm6d45m4o6vewdumk7",
+	"lzKmQOtZxgXMXndiurHkTeeSS6ZlFgA861baTmMq6BJy660FNKPMpJlnNSXC5PMACqlxVydbEjVSPHDH",
+	"zI2a98z/+kHi/UCUsmq27DS3znQs5OeoGSV8hlEzPoGgAv9VHwHBZixEsQG7a2w6UnHrr2ymkSrsf65D",
+	"zSre+XXTN8dOVIyg8hDgp21SQLUHXGvZmqYUoa/YrrysH/5Ql+52esMRNZAdBvE5sjOkwxBy027iYiFd",
+	"ZDhaIJeFKPpYFq3oD1BrnlofrUFpZx+Z3kxvpg7OBQhacJKQt+6S1Ykr54bJrma6b0twvrPinUG/MZKU",
+	"s5J2rrV7Fc0BQWmSfH4g8K3IXF1f0EyDtZYk5KsBtdnFOiGhqXrf9Gzc/SRnPOf4PKIDTivJ+0i/t/HU",
+	"hRTag+zNdOqnK4HgqyktioynzpWTLyG/Knl9hkrnc4cCBjpVvPDYI59WEFkwgcZoRXWkTZoCMGA3NuA/",
+	"nNESz3k6TLCQAxVBuB8TpEsLiYqX3Ie+fwRTPynwqR0O86Nkm7M70Vtf5Z5tL9tW8F4/k96egYuoYBGN",
+	"BPwVKdDSqBTcgjmAiFLnJhZRHVF722ToAv3uEoG2Jmsf7FSajEVCYmQEA6XRGo21IzEDEcqIizXNOIv0",
+	"RiD9NixMbuNa1Zs8cLa16hhk4BvcAaR+8JNHuwC62mELalU6wjhTx9tLF5LTi8i7M2bEwYB9SFPQOuI6",
+	"MoIaXEnF/y71v7sstqmwwF7wJqSBlfk4tNp6vF3/CjiCdQTrYAYBcwysfxZhxH8evL70bDGMFLmaWWHM",
+	"5mFnsx2hmgS7sxXdlUv+Y9QxPHp8MfbYeFR5ZeyxfDR6mD1WuHpW+lg9pL0sfWzqHenjsEDZrH2P8scK",
+	"q1dKIJ+ExrGLD7WLN8rrI137ChnkiNbvF62dDLJC69VRyNPmi2HkyEghx3Q+2xiF7j3rYf7o38OO7x0v",
+	"2D9rL9GvjDeGl/aHWWNA07NSxt0vBy5LGOtaR7o4JCzWqtyjTDHg80pp4hMwOPbpofbpWi091pivkB+O",
+	"MP0+YdrJDQNMr44YnjJFDCE1RlI4ZvE5hqVtTLzhPj+b+++UZCa1XyIvisTEqIwkZIVY6GSyeyq/eVX9",
+	"mP9mkW1uGKyJJV9NebcypVn0M6whk0X5G9o9sclkktl1K6kxeT99PyU254PlD7uqUfsPoPJa7Rf+5bVd",
+	"ht1v/wkAAP//HHk0bWQ2AAA=",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file
