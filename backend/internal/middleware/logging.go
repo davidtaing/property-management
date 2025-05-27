@@ -23,12 +23,22 @@ func LoggingMiddleware(logger *slog.Logger) mux.MiddlewareFunc {
 			// Call the next handler
 			next.ServeHTTP(wrapper, r)
 
+			queryValues := r.URL.Query()
+			for key, values := range queryValues {
+				if key == "name" || key == "address" {
+					for i := range values {
+						values[i] = "[REDACTED]"
+					}
+				}
+			}
+			query := queryValues.Encode()
+
 			// Log response details
 			duration := time.Since(start)
 			logger.Info("HTTP Request",
 				"method", r.Method,
 				"path", r.URL.Path,
-				"query", r.URL.Query().Encode(),
+				"query", query,
 				"status", wrapper.statusCode,
 				"duration_ms", duration.Milliseconds(),
 				"remote_addr", r.RemoteAddr,
