@@ -146,6 +146,8 @@ func (s *Server) LandlordsList(w http.ResponseWriter, r *http.Request, params La
 		return
 	}
 
+	s.logger.Debug("Landlords List Response", "response", resp)
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 }
@@ -247,6 +249,8 @@ func (s *Server) LandlordsCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	s.logger.Debug("Landlord Created", "landlord", createdLandlord)
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(createdLandlord)
@@ -303,6 +307,8 @@ func (s *Server) LandlordsArchive(w http.ResponseWriter, r *http.Request, id str
 		return
 	}
 
+	s.logger.Debug("Landlord Archived", "landlord", archivedLandlord)
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(archivedLandlord)
@@ -356,6 +362,8 @@ func (s *Server) LandlordsGet(w http.ResponseWriter, r *http.Request, id string)
 		json.NewEncoder(w).Encode(apiError)
 		return
 	}
+
+	s.logger.Debug("Landlord Retrieved", "landlord", landlord)
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(landlord)
@@ -440,6 +448,8 @@ func (s *Server) LandlordsUpdate(w http.ResponseWriter, r *http.Request, id stri
 		json.NewEncoder(w).Encode(apiError)
 		return
 	}
+
+	s.logger.Debug("Landlord Updated", "landlord", updatedLandlord)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
@@ -543,6 +553,8 @@ func (s *Server) PropertiesList(w http.ResponseWriter, r *http.Request, params P
 		},
 	}
 
+	s.logger.Debug("Properties List Response", "response", resp)
+
 	json.NewEncoder(w).Encode(resp)
 }
 
@@ -644,6 +656,8 @@ func (s *Server) PropertiesCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	s.logger.Debug("Property Created", "property", createdProperty)
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(createdProperty)
@@ -697,6 +711,8 @@ func (s *Server) PropertiesArchive(w http.ResponseWriter, r *http.Request, id st
 		return
 	}
 
+	s.logger.Debug("Property Archived", "property", archivedProperty)
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(archivedProperty)
@@ -745,6 +761,8 @@ func (s *Server) PropertiesGet(w http.ResponseWriter, r *http.Request, id string
 		})
 		return
 	}
+
+	s.logger.Debug("Property Retrieved", "property", property)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
@@ -829,6 +847,8 @@ func (s *Server) PropertiesUpdate(w http.ResponseWriter, r *http.Request, id str
 		})
 		return
 	}
+
+	s.logger.Debug("Property Updated", "property", updatedProperty)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
@@ -932,6 +952,8 @@ func (s *Server) TenantsList(w http.ResponseWriter, r *http.Request, params Tena
 		},
 	}
 
+	s.logger.Debug("Tenants List Response", "response", resp)
+
 	json.NewEncoder(w).Encode(resp)
 }
 
@@ -1015,6 +1037,8 @@ func (s *Server) TenantsCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	s.logger.Debug("Tenant Created", "tenant", createdTenant)
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(createdTenant)
@@ -1060,6 +1084,8 @@ func (s *Server) TenantsArchive(w http.ResponseWriter, r *http.Request, id strin
 		return
 	}
 
+	s.logger.Debug("Tenant Archived", "tenant", archivedTenant)
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(archivedTenant)
@@ -1096,6 +1122,8 @@ func (s *Server) TenantsGet(w http.ResponseWriter, r *http.Request, id string) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	s.logger.Debug("Tenant Retrieved", "tenant", tenant)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
@@ -1161,6 +1189,8 @@ func (s *Server) TenantsUpdate(w http.ResponseWriter, r *http.Request, id string
 		})
 		return
 	}
+
+	s.logger.Debug("Tenant Updated", "tenant", updatedTenant)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
