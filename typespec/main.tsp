@@ -7,6 +7,15 @@ using Http;
 
 namespace PropertyManagementService;
 
+model Address {
+  address_line_1: string;
+  address_line_2?: string;
+  suburb: string;
+  postcode: string;
+  state: string;
+  country: string;
+}
+
 model Landlord {
     @visibility(Lifecycle.Read)
     @format("uuid")
@@ -16,6 +25,7 @@ model Landlord {
     email: string;
     mobile: string;
     phone?: string;
+    ...Address;
     is_archived?: offsetDateTime;
     created_at: offsetDateTime;
     updated_at: offsetDateTime;
@@ -27,6 +37,7 @@ model CreateLandlord {
   email: string;
   mobile: string;
   phone?: string;
+  ...Address;
 }
 
 model LandlordList {
@@ -40,25 +51,18 @@ model Property {
     id: string;
     @format("uuid")
     landlord_id: string;
-    address_line_1: string;
-    address_line_2?: string;
-    suburb: string;
-    postcode: string;
-    state: string;
+    ...Address;
     management_fee: float64;
     is_archived?: offsetDateTime;
     created_at: offsetDateTime;
     updated_at: offsetDateTime;
+    
 }
 
 model CreateProperty {
   @format("uuid")
   landlord_id: string;
-  address_line_1: string;
-  address_line_2?: string;
-  suburb: string;
-  postcode: string;
-  state: string;
+  ...Address;
   management_fee: float64;
 }
 

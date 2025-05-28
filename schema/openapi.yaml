@@ -570,12 +570,38 @@ paths:
         - Tenant
 components:
   schemas:
+    Address:
+      type: object
+      required:
+        - address_line_1
+        - suburb
+        - postcode
+        - state
+        - country
+      properties:
+        address_line_1:
+          type: string
+        address_line_2:
+          type: string
+        suburb:
+          type: string
+        postcode:
+          type: string
+        state:
+          type: string
+        country:
+          type: string
     CreateLandlord:
       type: object
       required:
         - name
         - email
         - mobile
+        - address_line_1
+        - suburb
+        - postcode
+        - state
+        - country
       properties:
         name:
           type: string
@@ -586,6 +612,18 @@ components:
           type: string
         phone:
           type: string
+        address_line_1:
+          type: string
+        address_line_2:
+          type: string
+        suburb:
+          type: string
+        postcode:
+          type: string
+        state:
+          type: string
+        country:
+          type: string
     CreateProperty:
       type: object
       required:
@@ -594,6 +632,7 @@ components:
         - suburb
         - postcode
         - state
+        - country
         - management_fee
       properties:
         landlord_id:
@@ -608,6 +647,8 @@ components:
         postcode:
           type: string
         state:
+          type: string
+        country:
           type: string
         management_fee:
           type: number
@@ -662,6 +703,11 @@ components:
         - name
         - email
         - mobile
+        - address_line_1
+        - suburb
+        - postcode
+        - state
+        - country
         - created_at
         - updated_at
       properties:
@@ -677,6 +723,18 @@ components:
         mobile:
           type: string
         phone:
+          type: string
+        address_line_1:
+          type: string
+        address_line_2:
+          type: string
+        suburb:
+          type: string
+        postcode:
+          type: string
+        state:
+          type: string
+        country:
           type: string
         is_archived:
           type: string
@@ -732,6 +790,7 @@ components:
         - suburb
         - postcode
         - state
+        - country
         - management_fee
         - created_at
         - updated_at
@@ -752,6 +811,8 @@ components:
         postcode:
           type: string
         state:
+          type: string
+        country:
           type: string
         management_fee:
           type: number
