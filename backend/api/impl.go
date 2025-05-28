@@ -141,6 +141,10 @@ func (s *Server) LandlordsList(w http.ResponseWriter, r *http.Request, params La
 	if err != nil {
 		s.logger.Error("error encoding response", "error", err)
 		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(Error{
+			Code:    http.StatusInternalServerError,
+			Message: "Internal server error",
+		})
 		return
 	}
 
@@ -151,15 +155,24 @@ func (s *Server) LandlordsList(w http.ResponseWriter, r *http.Request, params La
 func (s *Server) LandlordsCreate(w http.ResponseWriter, r *http.Request) {
 	var payload CreateLandlord
 	err := json.NewDecoder(r.Body).Decode(&payload)
+
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(Error{
+			Code:    http.StatusBadRequest,
+			Message: err.Error(),
+		})
 		return
 	}
 
 	id, err := uuid.NewV7()
 
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(Error{
+			Code:    http.StatusInternalServerError,
+			Message: "Internal server error",
+		})
 		return
 	}
 
@@ -353,8 +366,13 @@ func (s *Server) LandlordsGet(w http.ResponseWriter, r *http.Request, id string)
 func (s *Server) LandlordsUpdate(w http.ResponseWriter, r *http.Request, id string) {
 	var payload Landlord
 	err := json.NewDecoder(r.Body).Decode(&payload)
+
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(Error{
+			Code:    http.StatusBadRequest,
+			Message: err.Error(),
+		})
 		return
 	}
 
@@ -534,14 +552,22 @@ func (s *Server) PropertiesCreate(w http.ResponseWriter, r *http.Request) {
 	var payload CreateProperty
 	err := json.NewDecoder(r.Body).Decode(&payload)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(Error{
+			Code:    http.StatusBadRequest,
+			Message: err.Error(),
+		})
 		return
 	}
 
 	id, err := uuid.NewV7()
 
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(Error{
+			Code:    http.StatusInternalServerError,
+			Message: "Internal server error",
+		})
 		return
 	}
 
@@ -612,7 +638,11 @@ func (s *Server) PropertiesCreate(w http.ResponseWriter, r *http.Request) {
 	)
 
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(Error{
+			Code:    http.StatusInternalServerError,
+			Message: "Internal server error",
+		})
 		return
 	}
 
@@ -661,7 +691,11 @@ func (s *Server) PropertiesArchive(w http.ResponseWriter, r *http.Request, id st
 	)
 
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(Error{
+			Code:    http.StatusInternalServerError,
+			Message: "Internal server error",
+		})
 		return
 	}
 
@@ -706,7 +740,11 @@ func (s *Server) PropertiesGet(w http.ResponseWriter, r *http.Request, id string
 	)
 
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(Error{
+			Code:    http.StatusInternalServerError,
+			Message: "Internal server error",
+		})
 		return
 	}
 
@@ -719,7 +757,11 @@ func (s *Server) PropertiesUpdate(w http.ResponseWriter, r *http.Request, id str
 	var payload Property
 	err := json.NewDecoder(r.Body).Decode(&payload)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(Error{
+			Code:    http.StatusBadRequest,
+			Message: err.Error(),
+		})
 		return
 	}
 
@@ -782,7 +824,11 @@ func (s *Server) PropertiesUpdate(w http.ResponseWriter, r *http.Request, id str
 	)
 
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(Error{
+			Code:    http.StatusInternalServerError,
+			Message: "Internal server error",
+		})
 		return
 	}
 
@@ -812,7 +858,11 @@ func (s *Server) TenantsList(w http.ResponseWriter, r *http.Request, params Tena
 
 	err := s.dbpool.QueryRow(context.Background(), sql, queryParams...).Scan(&total)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(Error{
+			Code:    http.StatusInternalServerError,
+			Message: "Internal server error",
+		})
 		return
 	}
 
@@ -851,15 +901,22 @@ func (s *Server) TenantsList(w http.ResponseWriter, r *http.Request, params Tena
 	for rows.Next() {
 		tenant, err := scanTenant(rows)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			fmt.Println(err.Error())
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(Error{
+				Code:    http.StatusInternalServerError,
+				Message: "Internal server error",
+			})
 			return
 		}
 		tenants = append(tenants, tenant)
 	}
 
 	if err := rows.Err(); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(Error{
+			Code:    http.StatusInternalServerError,
+			Message: "Internal server error",
+		})
 		return
 	}
 
@@ -952,8 +1009,11 @@ func (s *Server) TenantsCreate(w http.ResponseWriter, r *http.Request) {
 	createdTenant, err := scanTenant(row)
 
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		fmt.Println(err.Error())
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(Error{
+			Code:    http.StatusInternalServerError,
+			Message: "Internal server error",
+		})
 		return
 	}
 
@@ -994,7 +1054,11 @@ func (s *Server) TenantsArchive(w http.ResponseWriter, r *http.Request, id strin
 	archivedTenant, err := scanTenant(row)
 
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(Error{
+			Code:    http.StatusInternalServerError,
+			Message: "Internal server error",
+		})
 		return
 	}
 
@@ -1044,7 +1108,11 @@ func (s *Server) TenantsUpdate(w http.ResponseWriter, r *http.Request, id string
 	var payload Tenant
 	err := json.NewDecoder(r.Body).Decode(&payload)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(Error{
+			Code:    http.StatusBadRequest,
+			Message: err.Error(),
+		})
 		return
 	}
 
@@ -1088,7 +1156,11 @@ func (s *Server) TenantsUpdate(w http.ResponseWriter, r *http.Request, id string
 
 	updatedTenant, err = scanTenant(row)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(Error{
+			Code:    http.StatusInternalServerError,
+			Message: "Internal server error",
+		})
 		return
 	}
 
