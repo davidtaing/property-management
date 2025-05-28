@@ -135,7 +135,10 @@ func (s *Server) LandlordsList(w http.ResponseWriter, r *http.Request, params La
 		},
 	}
 
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	err = json.NewEncoder(w).Encode(resp)
+
 	if err != nil {
 		s.logger.Error("error encoding response", "error", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -147,9 +150,6 @@ func (s *Server) LandlordsList(w http.ResponseWriter, r *http.Request, params La
 	}
 
 	s.logger.Debug("Landlords List Response", "response", resp)
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
 }
 
 func (s *Server) LandlordsCreate(w http.ResponseWriter, r *http.Request) {
