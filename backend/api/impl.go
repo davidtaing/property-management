@@ -135,8 +135,6 @@ func (s *Server) LandlordsList(w http.ResponseWriter, r *http.Request, params La
 		},
 	}
 
-	fmt.Println(resp)
-
 	err = json.NewEncoder(w).Encode(resp)
 	if err != nil {
 		s.logger.Error("error encoding response", "error", err)
