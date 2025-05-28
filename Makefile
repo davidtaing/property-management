@@ -1,3 +1,6 @@
+generate:
+	make gen-openapi && make gen-backend
+
 gen-openapi:
 	tsp compile --output-dir . typespec/main.tsp
 
