@@ -18,8 +18,7 @@ import (
 )
 
 func main() {
-	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
-
+	logger := setupLogger()
 	config, err := config.NewConfig()
 
 	if err != nil {
@@ -77,6 +76,20 @@ func main() {
 	logger.Info("Starting server on port 8080")
 
 	log.Fatal(s.ListenAndServe())
+}
+
+func setupLogger() *slog.Logger {
+	level := slog.LevelDebug
+
+	if os.Getenv("ENV") == "PRODUCTION" {
+		level = slog.LevelInfo
+	}
+
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+		Level: level,
+	}))
+
+	return logger
 }
 
 func setupCors(config *config.Config, logger *slog.Logger) *cors.Cors {
