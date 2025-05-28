@@ -66,7 +66,9 @@ func (s *Server) LandlordsList(w http.ResponseWriter, r *http.Request, params La
 			email, 
 			mobile, 
 			phone, 
-			is_archived 
+			is_archived,
+			created_at,
+			updated_at
 		FROM landlords
 		%s
 		ORDER BY name
@@ -82,11 +84,23 @@ func (s *Server) LandlordsList(w http.ResponseWriter, r *http.Request, params La
 
 	for rows.Next() {
 		var landlord Landlord
-		err := rows.Scan(&landlord.Id, &landlord.Name, &landlord.Email, &landlord.Mobile, &landlord.Phone, &landlord.IsArchived)
+
+		err := rows.Scan(
+			&landlord.Id,
+			&landlord.Name,
+			&landlord.Email,
+			&landlord.Mobile,
+			&landlord.Phone,
+			&landlord.IsArchived,
+			&landlord.CreatedAt,
+			&landlord.UpdatedAt,
+		)
+
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+
 		landlords = append(landlords, landlord)
 	}
 
@@ -123,7 +137,7 @@ func (s *Server) LandlordsList(w http.ResponseWriter, r *http.Request, params La
 }
 
 func (s *Server) LandlordsCreate(w http.ResponseWriter, r *http.Request) {
-	var payload Landlord
+	var payload CreateLandlord
 	err := json.NewDecoder(r.Body).Decode(&payload)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -156,7 +170,10 @@ func (s *Server) LandlordsCreate(w http.ResponseWriter, r *http.Request) {
 			email,
 			mobile,
 			phone,
-			is_archived`
+			is_archived,
+			created_at,
+			updated_at
+		`
 
 	row := s.dbpool.QueryRow(
 		context.Background(),
@@ -177,6 +194,8 @@ func (s *Server) LandlordsCreate(w http.ResponseWriter, r *http.Request) {
 		&createdLandlord.Mobile,
 		&createdLandlord.Phone,
 		&createdLandlord.IsArchived,
+		&createdLandlord.CreatedAt,
+		&createdLandlord.UpdatedAt,
 	)
 
 	if err != nil {
@@ -196,14 +215,20 @@ func (s *Server) LandlordsArchive(w http.ResponseWriter, r *http.Request, id str
 	var archivedLandlord Landlord
 
 	sql := `
-		UPDATE landlords SET is_archived = NOW() WHERE id = $1
+		UPDATE landlords 
+		SET 
+			is_archived = NOW(),  
+			updated_at = NOW()
+		WHERE id = $1
 		RETURNING 
 			id, 
 			name, 
 			email, 
 			mobile, 
 			phone, 
-			is_archived
+			is_archived,
+			created_at,
+			updated_at
 	`
 
 	err := s.dbpool.QueryRow(context.Background(), sql, id).Scan(
@@ -213,6 +238,8 @@ func (s *Server) LandlordsArchive(w http.ResponseWriter, r *http.Request, id str
 		&archivedLandlord.Mobile,
 		&archivedLandlord.Phone,
 		&archivedLandlord.IsArchived,
+		&archivedLandlord.CreatedAt,
+		&archivedLandlord.UpdatedAt,
 	)
 
 	if err != nil {
@@ -238,7 +265,9 @@ func (s *Server) LandlordsGet(w http.ResponseWriter, r *http.Request, id string)
 			email, 
 			mobile, 
 			phone, 
-			is_archived 
+			is_archived,
+			created_at,
+			updated_at
 		FROM landlords WHERE id = $1
 	`
 
@@ -249,6 +278,8 @@ func (s *Server) LandlordsGet(w http.ResponseWriter, r *http.Request, id string)
 		&landlord.Mobile,
 		&landlord.Phone,
 		&landlord.IsArchived,
+		&landlord.CreatedAt,
+		&landlord.UpdatedAt,
 	)
 
 	w.Header().Set("Content-Type", "application/json")
@@ -278,14 +309,17 @@ func (s *Server) LandlordsUpdate(w http.ResponseWriter, r *http.Request, id stri
 			name = $1,
 			email = $2,
 			mobile = $3,
-			phone = $4
+			phone = $4,
+			updated_at = NOW()
 		WHERE id = $5
 		RETURNING id,
 			name,
 			email,
 			mobile,
 			phone,
-			is_archived
+			is_archived,
+			created_at,
+			updated_at
 	`
 
 	row := s.dbpool.QueryRow(
@@ -300,7 +334,16 @@ func (s *Server) LandlordsUpdate(w http.ResponseWriter, r *http.Request, id stri
 
 	var updatedLandlord Landlord
 
-	err = row.Scan(&updatedLandlord.Id, &updatedLandlord.Name, &updatedLandlord.Email, &updatedLandlord.Mobile, &updatedLandlord.Phone, &updatedLandlord.IsArchived)
+	err = row.Scan(
+		&updatedLandlord.Id,
+		&updatedLandlord.Name,
+		&updatedLandlord.Email,
+		&updatedLandlord.Mobile,
+		&updatedLandlord.Phone,
+		&updatedLandlord.IsArchived,
+		&updatedLandlord.CreatedAt,
+		&updatedLandlord.UpdatedAt,
+	)
 
 	if err != nil {
 		apiError := handleLandlordErrors(err)
@@ -352,7 +395,9 @@ func (s *Server) PropertiesList(w http.ResponseWriter, r *http.Request, params P
 			postcode,
 			landlord_id,
 			management_fee,
-			is_archived
+			is_archived,
+			created_at,
+			updated_at
 		FROM properties
 		%s
 		LIMIT $%d
@@ -379,6 +424,8 @@ func (s *Server) PropertiesList(w http.ResponseWriter, r *http.Request, params P
 			&property.LandlordId,
 			&property.ManagementFee,
 			&property.IsArchived,
+			&property.CreatedAt,
+			&property.UpdatedAt,
 		)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -410,7 +457,7 @@ func (s *Server) PropertiesList(w http.ResponseWriter, r *http.Request, params P
 }
 
 func (s *Server) PropertiesCreate(w http.ResponseWriter, r *http.Request) {
-	var payload Property
+	var payload CreateProperty
 	err := json.NewDecoder(r.Body).Decode(&payload)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -452,7 +499,9 @@ func (s *Server) PropertiesCreate(w http.ResponseWriter, r *http.Request) {
 			postcode, 
 			landlord_id, 
 			management_fee, 
-			is_archived
+			is_archived,
+			created_at,
+			updated_at
 	`
 
 	row := s.dbpool.QueryRow(
@@ -470,7 +519,19 @@ func (s *Server) PropertiesCreate(w http.ResponseWriter, r *http.Request) {
 
 	var createdProperty Property
 
-	err = row.Scan(&createdProperty.Id, &createdProperty.AddressLine1, &createdProperty.AddressLine2, &createdProperty.Suburb, &createdProperty.State, &createdProperty.Postcode, &createdProperty.LandlordId, &createdProperty.ManagementFee, &createdProperty.IsArchived)
+	err = row.Scan(
+		&createdProperty.Id,
+		&createdProperty.AddressLine1,
+		&createdProperty.AddressLine2,
+		&createdProperty.Suburb,
+		&createdProperty.State,
+		&createdProperty.Postcode,
+		&createdProperty.LandlordId,
+		&createdProperty.ManagementFee,
+		&createdProperty.IsArchived,
+		&createdProperty.CreatedAt,
+		&createdProperty.UpdatedAt,
+	)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -487,7 +548,9 @@ func (s *Server) PropertiesArchive(w http.ResponseWriter, r *http.Request, id st
 
 	sql := `
 		UPDATE properties 
-		SET is_archived = NOW() 
+		SET 
+			is_archived = NOW(),
+			updated_at = NOW()
 		WHERE id = $1
 		RETURNING 
 			id,
@@ -498,7 +561,9 @@ func (s *Server) PropertiesArchive(w http.ResponseWriter, r *http.Request, id st
 			postcode,
 			landlord_id,
 			management_fee,
-			is_archived
+			is_archived,
+			created_at,
+			updated_at
 	`
 
 	err := s.dbpool.QueryRow(context.Background(), sql, id).Scan(
@@ -511,6 +576,8 @@ func (s *Server) PropertiesArchive(w http.ResponseWriter, r *http.Request, id st
 		&archivedProperty.LandlordId,
 		&archivedProperty.ManagementFee,
 		&archivedProperty.IsArchived,
+		&archivedProperty.CreatedAt,
+		&archivedProperty.UpdatedAt,
 	)
 
 	if err != nil {
@@ -535,7 +602,9 @@ func (s *Server) PropertiesGet(w http.ResponseWriter, r *http.Request, id string
 			postcode,
 			landlord_id,
 			management_fee,
-			is_archived
+			is_archived,
+			created_at,
+			updated_at
 		FROM properties 
 		WHERE id = $1
 	`
@@ -550,6 +619,8 @@ func (s *Server) PropertiesGet(w http.ResponseWriter, r *http.Request, id string
 		&property.LandlordId,
 		&property.ManagementFee,
 		&property.IsArchived,
+		&property.CreatedAt,
+		&property.UpdatedAt,
 	)
 
 	if err != nil {
@@ -578,7 +649,8 @@ func (s *Server) PropertiesUpdate(w http.ResponseWriter, r *http.Request, id str
 			state = $4,
 			postcode = $5,
 			landlord_id = $6,
-			management_fee = $7
+			management_fee = $7,
+			updated_at = NOW()
 		WHERE id = $8
 		RETURNING 
 			id, 
@@ -589,7 +661,9 @@ func (s *Server) PropertiesUpdate(w http.ResponseWriter, r *http.Request, id str
 			postcode, 
 			landlord_id, 
 			management_fee, 
-			is_archived
+			is_archived,
+			created_at,
+			updated_at
 	`
 
 	row := s.dbpool.QueryRow(
@@ -607,7 +681,19 @@ func (s *Server) PropertiesUpdate(w http.ResponseWriter, r *http.Request, id str
 
 	var updatedProperty Property
 
-	err = row.Scan(&updatedProperty.Id, &updatedProperty.AddressLine1, &updatedProperty.AddressLine2, &updatedProperty.Suburb, &updatedProperty.State, &updatedProperty.Postcode, &updatedProperty.LandlordId, &updatedProperty.ManagementFee, &updatedProperty.IsArchived)
+	err = row.Scan(
+		&updatedProperty.Id,
+		&updatedProperty.AddressLine1,
+		&updatedProperty.AddressLine2,
+		&updatedProperty.Suburb,
+		&updatedProperty.State,
+		&updatedProperty.Postcode,
+		&updatedProperty.LandlordId,
+		&updatedProperty.ManagementFee,
+		&updatedProperty.IsArchived,
+		&updatedProperty.CreatedAt,
+		&updatedProperty.UpdatedAt,
+	)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -660,7 +746,9 @@ func (s *Server) TenantsList(w http.ResponseWriter, r *http.Request, params Tena
 			termination_reason,
 			vacate_date,
 			is_archived,
-			property_id
+			property_id,
+			created_at,
+			updated_at
 		FROM tenants
 		%s
 		LIMIT $%d
@@ -707,7 +795,7 @@ func (s *Server) TenantsList(w http.ResponseWriter, r *http.Request, params Tena
 }
 
 func (s *Server) TenantsCreate(w http.ResponseWriter, r *http.Request) {
-	var payload Tenant
+	var payload CreateTenant
 	err := json.NewDecoder(r.Body).Decode(&payload)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -756,7 +844,9 @@ func (s *Server) TenantsCreate(w http.ResponseWriter, r *http.Request) {
 			termination_reason,
 			vacate_date,
 			is_archived,
-			property_id
+			property_id,
+			created_at,
+			updated_at
 	`
 
 	row := s.dbpool.QueryRow(
@@ -791,7 +881,9 @@ func (s *Server) TenantsArchive(w http.ResponseWriter, r *http.Request, id strin
 
 	sql := `
 		UPDATE tenants 
-		SET is_archived = NOW() 
+		SET 
+			is_archived = NOW(),
+			updated_at = NOW()
 		WHERE id = $1
 		RETURNING 
 			id,
@@ -806,7 +898,9 @@ func (s *Server) TenantsArchive(w http.ResponseWriter, r *http.Request, id strin
 			termination_reason,
 			vacate_date,
 			is_archived,
-			property_id
+			property_id,
+			created_at,
+			updated_at
 	`
 
 	row := s.dbpool.QueryRow(context.Background(), sql, id)
@@ -839,7 +933,9 @@ func (s *Server) TenantsGet(w http.ResponseWriter, r *http.Request, id string) {
 			termination_reason,
 			vacate_date,
 			is_archived,
-			property_id
+			property_id,
+			created_at,
+			updated_at
 		FROM tenants 
 		WHERE id = $1
 	`
@@ -879,7 +975,8 @@ func (s *Server) TenantsUpdate(w http.ResponseWriter, r *http.Request, id string
 			termination_reason = $9,
 			vacate_date = $10,
 			is_archived = $11,
-			property_id = $12
+			property_id = $12,
+			updated_at = NOW()
 		WHERE id = $13
 		RETURNING 
 			id,
@@ -894,7 +991,9 @@ func (s *Server) TenantsUpdate(w http.ResponseWriter, r *http.Request, id string
 			termination_reason,
 			vacate_date,
 			is_archived,
-			property_id
+			property_id,
+			created_at,
+			updated_at
 	`
 
 	var updatedTenant Tenant
@@ -936,6 +1035,8 @@ func scanTenant(scanner interface {
 		&vacateDate,
 		&tenant.IsArchived,
 		&tenant.PropertyId,
+		&tenant.CreatedAt,
+		&tenant.UpdatedAt,
 	)
 
 	tenant.OriginalStartDate.Time = originalStartDate.Time

@@ -20,6 +20,37 @@ import (
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
+// CreateLandlord defines model for CreateLandlord.
+type CreateLandlord struct {
+	Email  openapi_types.Email `json:"email"`
+	Mobile string              `json:"mobile"`
+	Name   string              `json:"name"`
+	Phone  *string             `json:"phone,omitempty"`
+}
+
+// CreateProperty defines model for CreateProperty.
+type CreateProperty struct {
+	AddressLine1  string             `json:"address_line_1"`
+	AddressLine2  *string            `json:"address_line_2,omitempty"`
+	LandlordId    openapi_types.UUID `json:"landlord_id"`
+	ManagementFee float64            `json:"management_fee"`
+	Postcode      string             `json:"postcode"`
+	State         string             `json:"state"`
+	Suburb        string             `json:"suburb"`
+}
+
+// CreateTenant defines model for CreateTenant.
+type CreateTenant struct {
+	Email             openapi_types.Email `json:"email"`
+	EndDate           openapi_types.Date  `json:"end_date"`
+	Mobile            string              `json:"mobile"`
+	Name              string              `json:"name"`
+	OriginalStartDate openapi_types.Date  `json:"original_start_date"`
+	Phone             *string             `json:"phone,omitempty"`
+	PropertyId        openapi_types.UUID  `json:"property_id"`
+	StartDate         openapi_types.Date  `json:"start_date"`
+}
+
 // Error defines model for Error.
 type Error struct {
 	Code    int32  `json:"code"`
@@ -28,12 +59,14 @@ type Error struct {
 
 // Landlord defines model for Landlord.
 type Landlord struct {
+	CreatedAt  time.Time           `json:"created_at"`
 	Email      openapi_types.Email `json:"email"`
 	Id         *openapi_types.UUID `json:"id,omitempty"`
 	IsArchived *time.Time          `json:"is_archived,omitempty"`
 	Mobile     string              `json:"mobile"`
 	Name       string              `json:"name"`
 	Phone      *string             `json:"phone,omitempty"`
+	UpdatedAt  time.Time           `json:"updated_at"`
 }
 
 // LandlordList defines model for LandlordList.
@@ -55,6 +88,7 @@ type PaginatedMetadata struct {
 type Property struct {
 	AddressLine1  string              `json:"address_line_1"`
 	AddressLine2  *string             `json:"address_line_2,omitempty"`
+	CreatedAt     time.Time           `json:"created_at"`
 	Id            *openapi_types.UUID `json:"id,omitempty"`
 	IsArchived    *time.Time          `json:"is_archived,omitempty"`
 	LandlordId    openapi_types.UUID  `json:"landlord_id"`
@@ -62,6 +96,7 @@ type Property struct {
 	Postcode      string              `json:"postcode"`
 	State         string              `json:"state"`
 	Suburb        string              `json:"suburb"`
+	UpdatedAt     time.Time           `json:"updated_at"`
 }
 
 // PropertyList defines model for PropertyList.
@@ -72,6 +107,7 @@ type PropertyList struct {
 
 // Tenant defines model for Tenant.
 type Tenant struct {
+	CreatedAt         time.Time           `json:"created_at"`
 	Email             openapi_types.Email `json:"email"`
 	EndDate           openapi_types.Date  `json:"end_date"`
 	Id                *openapi_types.UUID `json:"id,omitempty"`
@@ -84,6 +120,7 @@ type Tenant struct {
 	StartDate         openapi_types.Date  `json:"start_date"`
 	TerminationDate   *openapi_types.Date `json:"termination_date,omitempty"`
 	TerminationReason *string             `json:"termination_reason,omitempty"`
+	UpdatedAt         time.Time           `json:"updated_at"`
 	VacateDate        *openapi_types.Date `json:"vacate_date,omitempty"`
 }
 
@@ -115,19 +152,19 @@ type TenantsListParams struct {
 }
 
 // LandlordsCreateJSONRequestBody defines body for LandlordsCreate for application/json ContentType.
-type LandlordsCreateJSONRequestBody = Landlord
+type LandlordsCreateJSONRequestBody = CreateLandlord
 
 // LandlordsUpdateJSONRequestBody defines body for LandlordsUpdate for application/json ContentType.
 type LandlordsUpdateJSONRequestBody = Landlord
 
 // PropertiesCreateJSONRequestBody defines body for PropertiesCreate for application/json ContentType.
-type PropertiesCreateJSONRequestBody = Property
+type PropertiesCreateJSONRequestBody = CreateProperty
 
 // PropertiesUpdateJSONRequestBody defines body for PropertiesUpdate for application/json ContentType.
 type PropertiesUpdateJSONRequestBody = Property
 
 // TenantsCreateJSONRequestBody defines body for TenantsCreate for application/json ContentType.
-type TenantsCreateJSONRequestBody = Tenant
+type TenantsCreateJSONRequestBody = CreateTenant
 
 // TenantsUpdateJSONRequestBody defines body for TenantsUpdate for application/json ContentType.
 type TenantsUpdateJSONRequestBody = Tenant
@@ -735,28 +772,29 @@ func HandlerWithOptions(si ServerInterface, options GorillaServerOptions) http.H
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/+xb247bNhN+FYH/f6msnUOBQHfpAUWBDbpA06tgYdDi2GYgkQo5dOMu/O4FD9bBkr3y",
-	"1uuVU12tLZEzw5lvDp/kfSCpzAspQKAmyQPR6Qpy6j7+opRU9kOhZAEKObjLqWRg/y6kyimShHCBb9+Q",
-	"mOCmAP8VlqDINiY5aE2XbnW4qVFxsSTbbUwUfDVcASPJZy+zWn9fCpPzL5CilXVLBcukYm2DIKc8a1jk",
-	"r8T7SmPCWWOdMZwRawllv4tsQxJUBrq26RlV6YqvobmfUYRXyHPo0pXLOc+6zh4TQfPuG8VKih7uclY7",
-	"IXF51qDumOtuuca2+zhC3vzwfwULkpD/TSpoTAIuJmUYtqUiqhTdOOvpkguKXIrHpNz5lcA+AlJGkbaP",
-	"6IxpyOw6WltQB16NwJ6ATY1SIHBWBNT22FKAOmU5SqTZKWudcN1rx54Lvao4OKBm6d45m4o6vewdumk7",
-	"lzKmQOtZxgXMXndiurHkTeeSS6ZlFgA861baTmMq6BJy660FNKPMpJlnNSXC5PMACqlxVydbEjVSPHDH",
-	"zI2a98z/+kHi/UCUsmq27DS3znQs5OeoGSV8hlEzPoGgAv9VHwHBZixEsQG7a2w6UnHrr2ymkSrsf65D",
-	"zSre+XXTN8dOVIyg8hDgp21SQLUHXGvZmqYUoa/YrrysH/5Ql+52esMRNZAdBvE5sjOkwxBy027iYiFd",
-	"ZDhaIJeFKPpYFq3oD1BrnlofrUFpZx+Z3kxvpg7OBQhacJKQt+6S1Ykr54bJrma6b0twvrPinUG/MZKU",
-	"s5J2rrV7Fc0BQWmSfH4g8K3IXF1f0EyDtZYk5KsBtdnFOiGhqXrf9Gzc/SRnPOf4PKIDTivJ+0i/t/HU",
-	"hRTag+zNdOqnK4HgqyktioynzpWTLyG/Knl9hkrnc4cCBjpVvPDYI59WEFkwgcZoRXWkTZoCMGA3NuA/",
-	"nNESz3k6TLCQAxVBuB8TpEsLiYqX3Ie+fwRTPynwqR0O86Nkm7M70Vtf5Z5tL9tW8F4/k96egYuoYBGN",
-	"BPwVKdDSqBTcgjmAiFLnJhZRHVF722ToAv3uEoG2Jmsf7FSajEVCYmQEA6XRGo21IzEDEcqIizXNOIv0",
-	"RiD9NixMbuNa1Zs8cLa16hhk4BvcAaR+8JNHuwC62mELalU6wjhTx9tLF5LTi8i7M2bEwYB9SFPQOuI6",
-	"MoIaXEnF/y71v7sstqmwwF7wJqSBlfk4tNp6vF3/CjiCdQTrYAYBcwysfxZhxH8evL70bDGMFLmaWWHM",
-	"5mFnsx2hmgS7sxXdlUv+Y9QxPHp8MfbYeFR5ZeyxfDR6mD1WuHpW+lg9pL0sfWzqHenjsEDZrH2P8scK",
-	"q1dKIJ+ExrGLD7WLN8rrI137ChnkiNbvF62dDLJC69VRyNPmi2HkyEghx3Q+2xiF7j3rYf7o38OO7x0v",
-	"2D9rL9GvjDeGl/aHWWNA07NSxt0vBy5LGOtaR7o4JCzWqtyjTDHg80pp4hMwOPbpofbpWi091pivkB+O",
-	"MP0+YdrJDQNMr44YnjJFDCE1RlI4ZvE5hqVtTLzhPj+b+++UZCa1XyIvisTEqIwkZIVY6GSyeyq/eVX9",
-	"mP9mkW1uGKyJJV9NebcypVn0M6whk0X5G9o9sclkktl1K6kxeT99PyU254PlD7uqUfsPoPJa7Rf+5bVd",
-	"ht1v/wkAAP//HHk0bWQ2AAA=",
+	"H4sIAAAAAAAC/+xb247bNhN+FYH/f6msnWQLBLpLDygKbNAFml4FC4MWxzYDiVTIoRt34XcveLAOtuy1",
+	"tlpHTnVnS+TMcOabb2Yk+5GkMi+kAIGaJI9EpyvIqfv4kwKKcEcFy6Ri9kqhZAEKObj7kFOe2Q8LqXKK",
+	"JAlXYoKbAkhCNCoulmQbk1zOeQZ27cEtQfP2G8VKirY725go+GK4AkaST35/XKoOmh5KI+T8M6RoBfrz",
+	"3PszbA7PQxlToPUs4wJmr1ttaix507okC/6acdbwjTGctbqGCrqEHATOFgCNLUyaeQbVJmHyOSjnG6kx",
+	"lazdcRopHrlj5kbNn/Zp/Qzxvl9KMTUzdkoPjnM8Dh9BUIH/ClUg2IyFs1ZO83b0AkGp+JILms00UoXn",
+	"6zoG3Xh31s256OikeC+KdV3xkTxpP2NDb83PbdH8RSmpDsO4Q2dpMhf49k1lMxcISw/mHLSmyzNSPUBt",
+	"t77NmuNslTrUsRnFA0++Qp63xrEDFtvjqYCy30W2IQkqA23b9IyqdMXXwM43q082jYkpWEfH7IXlJLxq",
+	"bm+oOhW8O65biIEj5M0P/1ewIAn536QqYZNQvyYlELalIqoU3ThfUIt45FI8JeXerwT2AZAyivTw8M6Y",
+	"hsy2ox0KaskYI/DMlEmNUpZii5A3Z2wpQHVZjhJp1mWtE67P2rHnQq8qDg6oWbp3zqaiVi+/cG1/Dodc",
+	"khiusvfoi4H6a1q6sdYOdH2wVgngYbDWsR7thWtpp75u6IX3ynrImCCoPIDieZsUUO1B2kOmx2RNU4rw",
+	"zB7YeaT/RrgbQ/g06oMfQkIOgR3sJi4W0sWZo02LkgqjDyWhRn+AWvPUumwNSjv7yPRmejN1yVGAoAUn",
+	"CXnrLlmduHJumOz43H1bgvOdFe8M+o2RpOwXtXOt3atoDghKk+TTI4GvRebq1IJmGqy1JCFfDKjNDgUJ",
+	"CY2F982Zzct5kjOec3wZ0QHBleT9HHiw8dSFFNqD7M106jtMgeD5nBZFxlPnysnnkK2VvHMaa+dzhwIG",
+	"OlW88NgjH1cQWTCBxmhFdaRNmgIwYDc24D/0aImfPFtMsJADFUG4HxOkSwuJajp8CH3MCUz5pxTEZwZo",
+	"/FGyTW+m7z1a2zYz0Jas7UEIX/cewk7hi6hgEY0E/BUp0NKoFNyCOYCIAhtGVEfU3jYZunDfXiLc1mTt",
+	"Q55Kk7FISIyMYKA0WqOxdiRmIEIZcbGmGWeR3gikX4eFzG1c477JI2dbq45BBr4AHsHre9/NHNKgYxBL",
+	"qxWBhBapjrdvTSfdqeS2x4w4GrD3aQpaR1xHRlCDK6n436X+28timwoL7AVvQhpYmY9DY9jTRftXwBGs",
+	"I1gH0w6YU2D9swh9/8vgtf8Oo1tvMYwUuZpeYczmYWezbaGaY3ZrKbovl/zHBsjwcPSbzZCNR6ZXNkOW",
+	"j2iPz5AVri4wRFaPjC87RDb1jkPksKDZZMAnp8gKsVc6Rj4LjWMtH2otb5DsE7X7CufIEa3fL1pb58gK",
+	"rVc3SHbrL4aRI+MgOaZzb20Uuneux6dI/052fAd5wfpZe6F+ZdNjeIF/fHYMaLrA4Lj7LcFlx8a61nFo",
+	"HBIia1z35LwYUHqlw+IzMDhW66FW6xqjnirPVzgljjD9PmHaOiEGmF7deNilixhCaoyj4ZjFfTRL25h4",
+	"w31+NvffK8lMar9EXhSJiVEZScgKsdDJZPdsfvOq+uvBzSLb3DBYEzuCNeXdyZRm0c+whkwW5a9q98Qm",
+	"k0lm162kxuTd9N2U2JwPlj/uWKP2v6jyWu1fB+W1XYY9bP8JAAD//z15ou8iPAAA",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

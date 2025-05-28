@@ -75,7 +75,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Landlord'
+              $ref: '#/components/schemas/CreateLandlord'
   /landlords/{id}:
     get:
       operationId: Landlords_get
@@ -262,7 +262,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Property'
+              $ref: '#/components/schemas/CreateProperty'
   /properties/{id}:
     get:
       operationId: Properties_get
@@ -449,7 +449,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Tenant'
+              $ref: '#/components/schemas/CreateTenant'
   /tenants/{id}:
     get:
       operationId: Tenants_get
@@ -570,6 +570,80 @@ paths:
         - Tenant
 components:
   schemas:
+    CreateLandlord:
+      type: object
+      required:
+        - name
+        - email
+        - mobile
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        mobile:
+          type: string
+        phone:
+          type: string
+    CreateProperty:
+      type: object
+      required:
+        - landlord_id
+        - address_line_1
+        - suburb
+        - postcode
+        - state
+        - management_fee
+      properties:
+        landlord_id:
+          type: string
+          format: uuid
+        address_line_1:
+          type: string
+        address_line_2:
+          type: string
+        suburb:
+          type: string
+        postcode:
+          type: string
+        state:
+          type: string
+        management_fee:
+          type: number
+          format: double
+    CreateTenant:
+      type: object
+      required:
+        - property_id
+        - name
+        - email
+        - mobile
+        - original_start_date
+        - start_date
+        - end_date
+      properties:
+        property_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        mobile:
+          type: string
+        phone:
+          type: string
+        original_start_date:
+          type: string
+          format: date
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
     Error:
       type: object
       required:
@@ -588,6 +662,8 @@ components:
         - name
         - email
         - mobile
+        - created_at
+        - updated_at
       properties:
         id:
           type: string
@@ -603,6 +679,12 @@ components:
         phone:
           type: string
         is_archived:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
           type: string
           format: date-time
     LandlordList:
@@ -651,6 +733,8 @@ components:
         - postcode
         - state
         - management_fee
+        - created_at
+        - updated_at
       properties:
         id:
           type: string
@@ -673,6 +757,12 @@ components:
           type: number
           format: double
         is_archived:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
           type: string
           format: date-time
     PropertyList:
@@ -698,6 +788,8 @@ components:
         - original_start_date
         - start_date
         - end_date
+        - created_at
+        - updated_at
       properties:
         id:
           type: string
@@ -733,6 +825,12 @@ components:
         termination_reason:
           type: string
         is_archived:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
           type: string
           format: date-time
     TenantList:

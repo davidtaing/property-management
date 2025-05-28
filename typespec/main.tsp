@@ -17,6 +17,16 @@ model Landlord {
     mobile: string;
     phone?: string;
     is_archived?: offsetDateTime;
+    created_at: offsetDateTime;
+    updated_at: offsetDateTime;
+}
+
+model CreateLandlord {
+  name: string;
+  @format("email")
+  email: string;
+  mobile: string;
+  phone?: string;
 }
 
 model LandlordList {
@@ -37,6 +47,19 @@ model Property {
     state: string;
     management_fee: float64;
     is_archived?: offsetDateTime;
+    created_at: offsetDateTime;
+    updated_at: offsetDateTime;
+}
+
+model CreateProperty {
+  @format("uuid")
+  landlord_id: string;
+  address_line_1: string;
+  address_line_2?: string;
+  suburb: string;
+  postcode: string;
+  state: string;
+  management_fee: float64;
 }
 
 model PropertyList {
@@ -62,7 +85,22 @@ model Tenant {
     termination_date?: plainDate;
     termination_reason?: string;
     is_archived?: offsetDateTime;
+    created_at: offsetDateTime;
+    updated_at: offsetDateTime;
 } 
+
+model CreateTenant {
+  @format("uuid")
+  property_id: string;
+  name: string;
+  @format("email")
+  email: string;
+  mobile: string;
+  phone?: string;
+  original_start_date: plainDate;
+  start_date: plainDate;
+  end_date: plainDate;
+}
 
 model TenantList {
   items: Tenant[];
@@ -113,7 +151,7 @@ namespace Landlords {
 
   @tag("Landlord")
   @post
-  op create(@body landlord: Landlord): {
+  op create(@body landlord: CreateLandlord): {
     @statusCode statusCode: 201;
     @body landlord: Landlord;
   } | {
@@ -190,7 +228,7 @@ namespace Properties {
 
   @tag("Property")
   @post
-  op create(@body property: Property): {
+  op create(@body property: CreateProperty): {
     @statusCode statusCode: 201;
     @body property: Property;
   } | {
@@ -267,7 +305,7 @@ namespace Tenants {
 
   @tag("Tenant")
   @post
-  op create(@body tenant: Tenant): {
+  op create(@body tenant: CreateTenant): {
     @statusCode statusCode: 201;
     @body tenant: Tenant;
   } | {
