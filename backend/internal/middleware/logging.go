@@ -51,10 +51,21 @@ func LoggingMiddleware(logger *slog.Logger) mux.MiddlewareFunc {
 // responseWriter is a wrapper for http.ResponseWriter that captures the status code
 type responseWriter struct {
 	http.ResponseWriter
-	statusCode int
+	statusCode    int
+	headerWritten bool
 }
 
 func (rw *responseWriter) WriteHeader(code int) {
-	rw.statusCode = code
-	rw.ResponseWriter.WriteHeader(code)
+	if !rw.headerWritten {
+		rw.statusCode = code
+		rw.ResponseWriter.WriteHeader(code)
+		rw.headerWritten = true
+	}
+}
+
+func (rw *responseWriter) Write(b []byte) (int, error) {
+	if !rw.headerWritten {
+		rw.WriteHeader(http.StatusOK)
+	}
+	return rw.ResponseWriter.Write(b)
 }
