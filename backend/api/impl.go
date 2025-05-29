@@ -1078,7 +1078,7 @@ func (s *Server) TenantsCreate(w http.ResponseWriter, r *http.Request) {
 		payload.Email,
 		payload.Mobile,
 		payload.Phone,
-		payload.PaidFrom,
+		payload.PaidTo,
 		payload.PaidTo,
 		payload.RentalAmount,
 		payload.Frequency,

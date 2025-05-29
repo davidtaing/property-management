@@ -108,7 +108,6 @@ model CreateTenant {
   email: string;
   mobile: string;
   phone?: string;
-  paid_from: plainDate;
   paid_to: plainDate;
   rental_amount: float64;
   frequency: string;
