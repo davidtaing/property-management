@@ -16,6 +16,15 @@ model Address {
   country: string;
 }
 
+model OptionalAddress {
+  address_line_1?: string;
+  address_line_2?: string;
+  suburb?: string;
+  postcode?: string;
+  state?: string;
+  country?: string;
+}
+
 model Landlord {
     @visibility(Lifecycle.Read)
     @format("uuid")
@@ -40,6 +49,16 @@ model CreateLandlord {
   ...Address;
 }
 
+model UpdateLandlord {
+    name?: string;
+    @format("email")
+    email?: string;
+    mobile?: string;
+    phone?: string;
+    ...OptionalAddress;
+    is_archived?: offsetDateTime | null;
+}
+
 model LandlordList {
   items: Landlord[];
   pagination: PaginatedMetadata;
@@ -58,7 +77,6 @@ model Property {
     is_archived?: offsetDateTime;
     created_at: offsetDateTime;
     updated_at: offsetDateTime;
-    
 }
 
 model CreateProperty {
@@ -67,6 +85,14 @@ model CreateProperty {
   ...Address;
   management_fee: float64;
   management_gained: plainDate;
+}
+
+model UpdateProperty {
+  ...OptionalAddress;
+  management_fee?: float64;
+  management_gained?: plainDate;
+  management_lost?: plainDate | null;
+  is_archived?: offsetDateTime | null;
 }
 
 model PropertyList {
@@ -114,6 +140,25 @@ model CreateTenant {
   original_start_date: plainDate;
   start_date: plainDate;
   end_date: plainDate;
+}
+
+model UpdateTenant {
+  name?: string;
+  @format("email")
+  email?: string;
+  mobile?: string;
+  phone?: string;
+  paid_from?: plainDate;
+  paid_to?: plainDate;
+  rental_amount?: float64;
+  frequency?: string;
+  original_start_date?: plainDate;
+  start_date?: plainDate;
+  end_date?: plainDate;
+  vacate_date?: plainDate | null;
+  termination_date?: plainDate | null;
+  termination_reason?: string | null;
+  is_archived?: offsetDateTime | null;
 }
 
 model TenantList {
@@ -177,8 +222,8 @@ namespace Landlords {
   };
 
   @tag("Landlord")
-  @put
-  op update(@path id: string, @body landlord: Landlord): {
+  @patch
+  op update(@path id: string, @body landlord: UpdateLandlord): {
     @statusCode statusCode: 200;
     @body landlord: Landlord;
   } | {
@@ -254,8 +299,8 @@ namespace Properties {
   };
 
   @tag("Property")
-  @put
-  op update(@path id: string, @body property: Property): {
+  @patch
+  op update(@path id: string, @body property: UpdateProperty): {
     @statusCode statusCode: 200;
     @body property: Property;
   } | {
@@ -331,8 +376,8 @@ namespace Tenants {
   };
 
   @tag("Tenant")
-  @put
-  op update(@path id: string, @body tenant: Tenant): {
+  @patch
+  op update(@path id: string, @body tenant: UpdateTenant): {
     @statusCode statusCode: 200;
     @body tenant: Tenant;
   } | {

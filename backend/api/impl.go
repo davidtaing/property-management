@@ -385,7 +385,7 @@ func (s *Server) LandlordsGet(w http.ResponseWriter, r *http.Request, id string)
 }
 
 func (s *Server) LandlordsUpdate(w http.ResponseWriter, r *http.Request, id string) {
-	var payload Landlord
+	var payload UpdateLandlord
 	err := json.NewDecoder(r.Body).Decode(&payload)
 
 	if err != nil {
@@ -397,44 +397,33 @@ func (s *Server) LandlordsUpdate(w http.ResponseWriter, r *http.Request, id stri
 		return
 	}
 
-	sql := `
-		UPDATE landlords SET
-			name = $1,
-			email = $2,
-			mobile = $3,
-			phone = $4,
-			address_line_1 = $5,
-			address_line_2 = $6,
-			suburb = $7,
-			postcode = $8,
-			state = $9,
-			country = $10,
-			updated_at = NOW()
-		WHERE id = $11
+	setClause, values, paramCount := buildLandlordUpdateSetClause(payload)
+	values = append(values, id)
+
+	sql := fmt.Sprintf(`
+		UPDATE landlords 
+		%s
+		WHERE id = $%d
 		RETURNING id,
 			name,
 			email,
 			mobile,
 			phone,
+			address_line_1,
+			address_line_2,
+			suburb,
+			postcode,
+			state,
+			country,
 			is_archived,
 			created_at,
 			updated_at
-	`
+	`, setClause, paramCount+1)
 
 	row := s.dbpool.QueryRow(
 		context.Background(),
 		sql,
-		payload.Name,
-		payload.Email,
-		payload.Mobile,
-		payload.Phone,
-		payload.AddressLine1,
-		payload.AddressLine2,
-		payload.Suburb,
-		payload.Postcode,
-		payload.State,
-		payload.Country,
-		id,
+		values...,
 	)
 
 	var updatedLandlord Landlord
@@ -805,7 +794,7 @@ func (s *Server) PropertiesGet(w http.ResponseWriter, r *http.Request, id string
 }
 
 func (s *Server) PropertiesUpdate(w http.ResponseWriter, r *http.Request, id string) {
-	var payload Property
+	var payload UpdateProperty
 	err := json.NewDecoder(r.Body).Decode(&payload)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -816,19 +805,13 @@ func (s *Server) PropertiesUpdate(w http.ResponseWriter, r *http.Request, id str
 		return
 	}
 
-	sql := `
-		UPDATE properties SET
-			address_line_1 = $1,
-			address_line_2 = $2,
-			suburb = $3,
-			state = $4,
-			postcode = $5,
-			country = $6,
-			landlord_id = $7,
-			management_fee = $8,
-			management_gained = $9,
-			updated_at = NOW()
-		WHERE id = $10
+	setClause, values, paramCount := buildPropertyUpdateSetClause(payload)
+	values = append(values, id)
+
+	sql := fmt.Sprintf(`
+		UPDATE properties 
+		%s
+		WHERE id = $%d
 		RETURNING 
 			id, 
 			address_line_1, 
@@ -844,21 +827,12 @@ func (s *Server) PropertiesUpdate(w http.ResponseWriter, r *http.Request, id str
 			is_archived,
 			created_at,
 			updated_at
-	`
+	`, setClause, paramCount)
 
 	row := s.dbpool.QueryRow(
 		context.Background(),
 		sql,
-		payload.AddressLine1,
-		payload.AddressLine2,
-		payload.Suburb,
-		payload.State,
-		payload.Postcode,
-		payload.Country,
-		payload.LandlordId,
-		payload.ManagementFee,
-		payload.ManagementGained,
-		id,
+		values...,
 	)
 
 	var updatedProperty Property
@@ -1201,7 +1175,7 @@ func (s *Server) TenantsGet(w http.ResponseWriter, r *http.Request, id string) {
 }
 
 func (s *Server) TenantsUpdate(w http.ResponseWriter, r *http.Request, id string) {
-	var payload Tenant
+	var payload UpdateTenant
 	err := json.NewDecoder(r.Body).Decode(&payload)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -1212,26 +1186,13 @@ func (s *Server) TenantsUpdate(w http.ResponseWriter, r *http.Request, id string
 		return
 	}
 
-	sql := `
-		UPDATE tenants SET
-			name = $1,
-			email = $2,
-			mobile = $3,
-			phone = $4,
-			paid_from = $5,
-			paid_to = $6,
-			rental_amount = $7,
-			frequency = $8,
-			original_start_date = $9,
-			start_date = $10,
-			end_date = $11,
-			termination_date = $12,
-			termination_reason = $13,
-			vacate_date = $14,
-			is_archived = $15,
-			property_id = $16,
-			updated_at = NOW()
-		WHERE id = $13
+	setClause, values, paramCount := buildTenantUpdateSetClause(payload)
+	values = append(values, id)
+
+	sql := fmt.Sprintf(`
+		UPDATE tenants 
+		%s
+		WHERE id = $%d
 		RETURNING 
 			id,
 			name,
@@ -1252,30 +1213,14 @@ func (s *Server) TenantsUpdate(w http.ResponseWriter, r *http.Request, id string
 			property_id,
 			created_at,
 			updated_at
-	`
+	`, setClause, paramCount)
 
 	var updatedTenant Tenant
 
 	row := s.dbpool.QueryRow(
 		context.Background(),
 		sql,
-		payload.Name,
-		payload.Email,
-		payload.Mobile,
-		payload.Phone,
-		payload.PaidFrom,
-		payload.PaidTo,
-		payload.RentalAmount,
-		payload.Frequency,
-		payload.OriginalStartDate,
-		payload.StartDate,
-		payload.EndDate,
-		payload.TerminationDate,
-		payload.TerminationReason,
-		payload.VacateDate,
-		payload.IsArchived,
-		payload.PropertyId,
-		id,
+		values...,
 	)
 
 	updatedTenant, err = scanTenant(row)
@@ -1437,4 +1382,256 @@ func buildWhereClause(conditions map[string]interface{}) (string, []interface{},
 	}
 
 	return "WHERE " + strings.Join(clauses, " AND "), params, paramCount
+}
+
+func buildLandlordUpdateSetClause(payload UpdateLandlord) (string, []interface{}, int) {
+	fields := []string{}
+	values := []interface{}{}
+	paramCount := 0
+
+	if payload.Name != nil && *payload.Name != "" {
+		paramCount++
+		fields = append(fields, fmt.Sprintf("name = $%d", paramCount))
+		values = append(values, *payload.Name)
+	}
+
+	if payload.Email != nil {
+		paramCount++
+		fields = append(fields, fmt.Sprintf("email = $%d", paramCount))
+		values = append(values, *payload.Email)
+	}
+
+	if payload.Mobile != nil && *payload.Mobile != "" {
+		paramCount++
+		fields = append(fields, fmt.Sprintf("mobile = $%d", paramCount))
+		values = append(values, *payload.Mobile)
+	}
+
+	if payload.Phone != nil && *payload.Phone != "" {
+		paramCount++
+		fields = append(fields, fmt.Sprintf("phone = $%d", paramCount))
+		values = append(values, *payload.Phone)
+	}
+
+	if payload.AddressLine1 != nil && *payload.AddressLine1 != "" {
+		paramCount++
+		fields = append(fields, fmt.Sprintf("address_line_1 = $%d", paramCount))
+		values = append(values, *payload.AddressLine1)
+	}
+
+	if payload.AddressLine2 != nil && *payload.AddressLine2 != "" {
+		paramCount++
+		fields = append(fields, fmt.Sprintf("address_line_2 = $%d", paramCount))
+		values = append(values, *payload.AddressLine2)
+	}
+
+	if payload.Suburb != nil && *payload.Suburb != "" {
+		paramCount++
+		fields = append(fields, fmt.Sprintf("suburb = $%d", paramCount))
+		values = append(values, *payload.Suburb)
+	}
+
+	if payload.Postcode != nil && *payload.Postcode != "" {
+		paramCount++
+		fields = append(fields, fmt.Sprintf("postcode = $%d", paramCount))
+		values = append(values, *payload.Postcode)
+	}
+
+	if payload.State != nil && *payload.State != "" {
+		paramCount++
+		fields = append(fields, fmt.Sprintf("state = $%d", paramCount))
+		values = append(values, *payload.State)
+	}
+
+	if payload.Country != nil && *payload.Country != "" {
+		paramCount++
+		fields = append(fields, fmt.Sprintf("country = $%d", paramCount))
+		values = append(values, *payload.Country)
+	}
+
+	if payload.IsArchived == nil {
+		fields = append(fields, "is_archived = null")
+	}
+
+	if len(fields) > 0 {
+		fields = append(fields, "updated_at = NOW()")
+	}
+
+	setClause := "SET\n" + strings.Join(fields, ",\n")
+
+	return setClause, values, paramCount
+}
+
+func buildPropertyUpdateSetClause(payload UpdateProperty) (string, []interface{}, int) {
+	fields := []string{}
+	values := []interface{}{}
+	paramCount := 0
+
+	if payload.AddressLine1 != nil && *payload.AddressLine1 != "" {
+		paramCount++
+		fields = append(fields, fmt.Sprintf("address_line_1 = $%d", paramCount))
+		values = append(values, *payload.AddressLine1)
+	}
+
+	if payload.AddressLine2 != nil && *payload.AddressLine2 != "" {
+		paramCount++
+		fields = append(fields, fmt.Sprintf("address_line_2 = $%d", paramCount))
+		values = append(values, *payload.AddressLine2)
+	}
+
+	if payload.Suburb != nil && *payload.Suburb != "" {
+		paramCount++
+		fields = append(fields, fmt.Sprintf("suburb = $%d", paramCount))
+		values = append(values, *payload.Suburb)
+	}
+
+	if payload.Postcode != nil && *payload.Postcode != "" {
+		paramCount++
+		fields = append(fields, fmt.Sprintf("postcode = $%d", paramCount))
+		values = append(values, *payload.Postcode)
+	}
+
+	if payload.State != nil && *payload.State != "" {
+		paramCount++
+		fields = append(fields, fmt.Sprintf("state = $%d", paramCount))
+		values = append(values, *payload.State)
+	}
+
+	if payload.Country != nil && *payload.Country != "" {
+		paramCount++
+		fields = append(fields, fmt.Sprintf("country = $%d", paramCount))
+		values = append(values, *payload.Country)
+	}
+
+	if payload.ManagementFee != nil {
+		paramCount++
+		fields = append(fields, fmt.Sprintf("management_fee = $%d", paramCount))
+		values = append(values, *payload.ManagementFee)
+	}
+
+	if payload.ManagementGained != nil {
+		paramCount++
+		fields = append(fields, fmt.Sprintf("management_gained = $%d", paramCount))
+		values = append(values, *payload.ManagementGained)
+	}
+
+	if payload.ManagementLost != nil {
+		paramCount++
+		fields = append(fields, fmt.Sprintf("management_lost = $%d", paramCount))
+		values = append(values, *payload.ManagementLost)
+	}
+
+	if payload.IsArchived == nil {
+		fields = append(fields, "is_archived = null")
+	}
+
+	if len(fields) > 0 {
+		fields = append(fields, "updated_at = NOW()")
+	}
+
+	setClause := "SET\n" + strings.Join(fields, ",\n")
+
+	return setClause, values, paramCount
+}
+
+func buildTenantUpdateSetClause(payload UpdateTenant) (string, []interface{}, int) {
+	fields := []string{}
+	values := []interface{}{}
+	paramCount := 0
+
+	if payload.Name != nil && *payload.Name != "" {
+		paramCount++
+		fields = append(fields, fmt.Sprintf("name = $%d", paramCount))
+		values = append(values, *payload.Name)
+	}
+
+	if payload.Email != nil && *payload.Email != "" {
+		paramCount++
+		fields = append(fields, fmt.Sprintf("email = $%d", paramCount))
+		values = append(values, *payload.Email)
+	}
+
+	if payload.Mobile != nil && *payload.Mobile != "" {
+		paramCount++
+		fields = append(fields, fmt.Sprintf("mobile = $%d", paramCount))
+		values = append(values, *payload.Mobile)
+	}
+
+	if payload.Phone != nil && *payload.Phone != "" {
+		paramCount++
+		fields = append(fields, fmt.Sprintf("phone = $%d", paramCount))
+		values = append(values, *payload.Phone)
+	}
+
+	if payload.PaidFrom != nil {
+		paramCount++
+		fields = append(fields, fmt.Sprintf("paid_from = $%d", paramCount))
+		values = append(values, *payload.PaidFrom)
+	}
+
+	if payload.PaidTo != nil {
+		paramCount++
+		fields = append(fields, fmt.Sprintf("paid_to = $%d", paramCount))
+		values = append(values, *payload.PaidTo)
+	}
+
+	if payload.RentalAmount != nil {
+		paramCount++
+		fields = append(fields, fmt.Sprintf("rental_amount = $%d", paramCount))
+		values = append(values, *payload.RentalAmount)
+	}
+
+	if payload.Frequency != nil && *payload.Frequency != "" {
+		paramCount++
+		fields = append(fields, fmt.Sprintf("frequency = $%d", paramCount))
+		values = append(values, *payload.Frequency)
+	}
+
+	if payload.OriginalStartDate != nil {
+		paramCount++
+		fields = append(fields, fmt.Sprintf("original_start_date = $%d", paramCount))
+		values = append(values, *payload.OriginalStartDate)
+	}
+
+	if payload.StartDate != nil {
+		paramCount++
+		fields = append(fields, fmt.Sprintf("start_date = $%d", paramCount))
+		values = append(values, *payload.StartDate)
+	}
+
+	if payload.EndDate != nil {
+		paramCount++
+		fields = append(fields, fmt.Sprintf("end_date = $%d", paramCount))
+		values = append(values, *payload.EndDate)
+	}
+
+	if payload.TerminationDate != nil {
+		paramCount++
+		fields = append(fields, fmt.Sprintf("termination_date = $%d", paramCount))
+		values = append(values, *payload.TerminationDate)
+	}
+
+	if payload.TerminationReason != nil && *payload.TerminationReason != "" {
+		paramCount++
+		fields = append(fields, fmt.Sprintf("termination_reason = $%d", paramCount))
+		values = append(values, *payload.TerminationReason)
+	}
+
+	if payload.VacateDate != nil {
+		paramCount++
+		fields = append(fields, fmt.Sprintf("vacate_date = $%d", paramCount))
+		values = append(values, *payload.VacateDate)
+	}
+
+	if payload.IsArchived == nil {
+		fields = append(fields, "is_archived = null")
+	}
+
+	if len(fields) > 0 {
+		fields = append(fields, "updated_at = NOW()")
+	}
+
+	setClause := "SET\n" + strings.Join(fields, ",\n")
+
+	return setClause, values, paramCount
 }

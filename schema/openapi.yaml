@@ -118,7 +118,7 @@ paths:
                 $ref: '#/components/schemas/Error'
       tags:
         - Landlord
-    put:
+    patch:
       operationId: Landlords_update
       parameters:
         - name: id
@@ -164,7 +164,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Landlord'
+              $ref: '#/components/schemas/UpdateLandlord'
     delete:
       operationId: Landlords_archive
       parameters:
@@ -311,7 +311,7 @@ paths:
                 $ref: '#/components/schemas/Error'
       tags:
         - Property
-    put:
+    patch:
       operationId: Properties_update
       parameters:
         - name: id
@@ -357,7 +357,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Property'
+              $ref: '#/components/schemas/UpdateProperty'
     delete:
       operationId: Properties_archive
       parameters:
@@ -504,7 +504,7 @@ paths:
                 $ref: '#/components/schemas/Error'
       tags:
         - Tenant
-    put:
+    patch:
       operationId: Tenants_update
       parameters:
         - name: id
@@ -550,7 +550,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Tenant'
+              $ref: '#/components/schemas/UpdateTenant'
     delete:
       operationId: Tenants_archive
       parameters:
@@ -790,6 +790,21 @@ components:
             $ref: '#/components/schemas/Landlord'
         pagination:
           $ref: '#/components/schemas/PaginatedMetadata'
+    OptionalAddress:
+      type: object
+      properties:
+        address_line_1:
+          type: string
+        address_line_2:
+          type: string
+        suburb:
+          type: string
+        postcode:
+          type: string
+        state:
+          type: string
+        country:
+          type: string
     PaginatedMetadata:
       type: object
       required:
@@ -961,6 +976,110 @@ components:
             $ref: '#/components/schemas/Tenant'
         pagination:
           $ref: '#/components/schemas/PaginatedMetadata'
+    UpdateLandlord:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        mobile:
+          type: string
+        phone:
+          type: string
+        address_line_1:
+          type: string
+        address_line_2:
+          type: string
+        suburb:
+          type: string
+        postcode:
+          type: string
+        state:
+          type: string
+        country:
+          type: string
+        is_archived:
+          type: string
+          format: date-time
+          nullable: true
+    UpdateProperty:
+      type: object
+      properties:
+        address_line_1:
+          type: string
+        address_line_2:
+          type: string
+        suburb:
+          type: string
+        postcode:
+          type: string
+        state:
+          type: string
+        country:
+          type: string
+        management_fee:
+          type: number
+          format: double
+        management_gained:
+          type: string
+          format: date
+        management_lost:
+          type: string
+          format: date
+          nullable: true
+        is_archived:
+          type: string
+          format: date-time
+          nullable: true
+    UpdateTenant:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        mobile:
+          type: string
+        phone:
+          type: string
+        paid_from:
+          type: string
+          format: date
+        paid_to:
+          type: string
+          format: date
+        rental_amount:
+          type: number
+          format: double
+        frequency:
+          type: string
+        original_start_date:
+          type: string
+          format: date
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        vacate_date:
+          type: string
+          format: date
+          nullable: true
+        termination_date:
+          type: string
+          format: date
+          nullable: true
+        termination_reason:
+          type: string
+          nullable: true
+        is_archived:
+          type: string
+          format: date-time
+          nullable: true
 servers:
   - url: https://property-management.fly.dev
     description: Production Server

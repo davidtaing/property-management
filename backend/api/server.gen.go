@@ -154,6 +154,54 @@ type TenantList struct {
 	Pagination PaginatedMetadata `json:"pagination"`
 }
 
+// UpdateLandlord defines model for UpdateLandlord.
+type UpdateLandlord struct {
+	AddressLine1 *string              `json:"address_line_1,omitempty"`
+	AddressLine2 *string              `json:"address_line_2,omitempty"`
+	Country      *string              `json:"country,omitempty"`
+	Email        *openapi_types.Email `json:"email,omitempty"`
+	IsArchived   *time.Time           `json:"is_archived"`
+	Mobile       *string              `json:"mobile,omitempty"`
+	Name         *string              `json:"name,omitempty"`
+	Phone        *string              `json:"phone,omitempty"`
+	Postcode     *string              `json:"postcode,omitempty"`
+	State        *string              `json:"state,omitempty"`
+	Suburb       *string              `json:"suburb,omitempty"`
+}
+
+// UpdateProperty defines model for UpdateProperty.
+type UpdateProperty struct {
+	AddressLine1     *string             `json:"address_line_1,omitempty"`
+	AddressLine2     *string             `json:"address_line_2,omitempty"`
+	Country          *string             `json:"country,omitempty"`
+	IsArchived       *time.Time          `json:"is_archived"`
+	ManagementFee    *float64            `json:"management_fee,omitempty"`
+	ManagementGained *openapi_types.Date `json:"management_gained,omitempty"`
+	ManagementLost   *openapi_types.Date `json:"management_lost"`
+	Postcode         *string             `json:"postcode,omitempty"`
+	State            *string             `json:"state,omitempty"`
+	Suburb           *string             `json:"suburb,omitempty"`
+}
+
+// UpdateTenant defines model for UpdateTenant.
+type UpdateTenant struct {
+	Email             *openapi_types.Email `json:"email,omitempty"`
+	EndDate           *openapi_types.Date  `json:"end_date,omitempty"`
+	Frequency         *string              `json:"frequency,omitempty"`
+	IsArchived        *time.Time           `json:"is_archived"`
+	Mobile            *string              `json:"mobile,omitempty"`
+	Name              *string              `json:"name,omitempty"`
+	OriginalStartDate *openapi_types.Date  `json:"original_start_date,omitempty"`
+	PaidFrom          *openapi_types.Date  `json:"paid_from,omitempty"`
+	PaidTo            *openapi_types.Date  `json:"paid_to,omitempty"`
+	Phone             *string              `json:"phone,omitempty"`
+	RentalAmount      *float64             `json:"rental_amount,omitempty"`
+	StartDate         *openapi_types.Date  `json:"start_date,omitempty"`
+	TerminationDate   *openapi_types.Date  `json:"termination_date"`
+	TerminationReason *string              `json:"termination_reason"`
+	VacateDate        *openapi_types.Date  `json:"vacate_date"`
+}
+
 // LandlordsListParams defines parameters for LandlordsList.
 type LandlordsListParams struct {
 	Page         *int32  `form:"page,omitempty" json:"page,omitempty"`
@@ -182,19 +230,19 @@ type TenantsListParams struct {
 type LandlordsCreateJSONRequestBody = CreateLandlord
 
 // LandlordsUpdateJSONRequestBody defines body for LandlordsUpdate for application/json ContentType.
-type LandlordsUpdateJSONRequestBody = Landlord
+type LandlordsUpdateJSONRequestBody = UpdateLandlord
 
 // PropertiesCreateJSONRequestBody defines body for PropertiesCreate for application/json ContentType.
 type PropertiesCreateJSONRequestBody = CreateProperty
 
 // PropertiesUpdateJSONRequestBody defines body for PropertiesUpdate for application/json ContentType.
-type PropertiesUpdateJSONRequestBody = Property
+type PropertiesUpdateJSONRequestBody = UpdateProperty
 
 // TenantsCreateJSONRequestBody defines body for TenantsCreate for application/json ContentType.
 type TenantsCreateJSONRequestBody = CreateTenant
 
 // TenantsUpdateJSONRequestBody defines body for TenantsUpdate for application/json ContentType.
-type TenantsUpdateJSONRequestBody = Tenant
+type TenantsUpdateJSONRequestBody = UpdateTenant
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
@@ -211,7 +259,7 @@ type ServerInterface interface {
 	// (GET /landlords/{id})
 	LandlordsGet(w http.ResponseWriter, r *http.Request, id string)
 
-	// (PUT /landlords/{id})
+	// (PATCH /landlords/{id})
 	LandlordsUpdate(w http.ResponseWriter, r *http.Request, id string)
 
 	// (GET /properties)
@@ -226,7 +274,7 @@ type ServerInterface interface {
 	// (GET /properties/{id})
 	PropertiesGet(w http.ResponseWriter, r *http.Request, id string)
 
-	// (PUT /properties/{id})
+	// (PATCH /properties/{id})
 	PropertiesUpdate(w http.ResponseWriter, r *http.Request, id string)
 
 	// (GET /tenants)
@@ -241,7 +289,7 @@ type ServerInterface interface {
 	// (GET /tenants/{id})
 	TenantsGet(w http.ResponseWriter, r *http.Request, id string)
 
-	// (PUT /tenants/{id})
+	// (PATCH /tenants/{id})
 	TenantsUpdate(w http.ResponseWriter, r *http.Request, id string)
 }
 
@@ -795,7 +843,7 @@ func HandlerWithOptions(si ServerInterface, options GorillaServerOptions) http.H
 
 	r.HandleFunc(options.BaseURL+"/landlords/{id}", wrapper.LandlordsGet).Methods("GET")
 
-	r.HandleFunc(options.BaseURL+"/landlords/{id}", wrapper.LandlordsUpdate).Methods("PUT")
+	r.HandleFunc(options.BaseURL+"/landlords/{id}", wrapper.LandlordsUpdate).Methods("PATCH")
 
 	r.HandleFunc(options.BaseURL+"/properties", wrapper.PropertiesList).Methods("GET")
 
@@ -805,7 +853,7 @@ func HandlerWithOptions(si ServerInterface, options GorillaServerOptions) http.H
 
 	r.HandleFunc(options.BaseURL+"/properties/{id}", wrapper.PropertiesGet).Methods("GET")
 
-	r.HandleFunc(options.BaseURL+"/properties/{id}", wrapper.PropertiesUpdate).Methods("PUT")
+	r.HandleFunc(options.BaseURL+"/properties/{id}", wrapper.PropertiesUpdate).Methods("PATCH")
 
 	r.HandleFunc(options.BaseURL+"/tenants", wrapper.TenantsList).Methods("GET")
 
@@ -815,7 +863,7 @@ func HandlerWithOptions(si ServerInterface, options GorillaServerOptions) http.H
 
 	r.HandleFunc(options.BaseURL+"/tenants/{id}", wrapper.TenantsGet).Methods("GET")
 
-	r.HandleFunc(options.BaseURL+"/tenants/{id}", wrapper.TenantsUpdate).Methods("PUT")
+	r.HandleFunc(options.BaseURL+"/tenants/{id}", wrapper.TenantsUpdate).Methods("PATCH")
 
 	return r
 }
@@ -823,31 +871,32 @@ func HandlerWithOptions(si ServerInterface, options GorillaServerOptions) http.H
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
-	"td/jVc9qvySpnm0q7GH9XwAAAP//34D2Q4RBAAA=",
+	"H4sIAAAAAAAC/+xb247bNhD9FYHto7N2LgUCvaUXFAUSdIGmT8HCoMWxzYAiFXLkxl343wteLEu2ZFuu",
+	"1isnetsVb8OZM4dzKPmRJCrNlASJhsSPxCRLSKn78xcNFOE9lUwozeyTTKsMNHJw7ZQxDcZMBZcwfWmf",
+	"4DoDEhODmssF2YyqXV7VdklULlGva9sgpVzYlrnSKUUShyejw66pmnEBtbNImtY3ZEslG1qUwUSx+kaD",
+	"FBta8lmuZzVNmxHR8CXnGhiJP3mLRsVmgu2jfY8WE5YM2i6/c9xD4Q01+wwJWkN86O59uNbPEToRYDPl",
+	"rBLAPOesNn5U0gWkIHE6B6gMYSqfOfeEQTJPZ6D3Bi0ol1Bdink/XTu45Z1fGNIDd9RttTnuH0FSiYdR",
+	"b5FOINmUBU+cdOjcbh9kUo+ESzJTab7gkoqpQarxfEsyytkU1Xl9m7M/5M252NUgkYopTW34zoRuq43t",
+	"Iaxs36iRTLa+2LevHK96T1esK2GhDnG/aa30IdS2+VVsjEt8/Wq3My4RFiGJwRi6gNOJFZJl27/Omuc8",
+	"rBKXe2xK8SCiL5CntRhskZH1WNRA2Z9SrEmMOoe6YWZKdbLkqxpybDSr34fpiOQZa+nqPSgdTZwLKbsU",
+	"/4qFx3D6npsanuYIafWPHzXMSUx+GO+KtXGo1MYF5jfFQlRruvZ8aJMbuZKnZrn3PYF9AKSMIj30mTOm",
+	"Mmfd1g4nqiGHfZ5sZock15a+plmgiDOGZKDbdEeFVLTp6yY3Z43Yc6FfKoCGlCzd22d1oVovP2NpdwnR",
+	"XZO9elx6lkYJZfBZytWu6PNadW47Zt0mRhfMWiRZP5i1qax/4sKjQynQ9xrmf8mOuVbp9yxSRgRBpwHA",
+	"lw3SQI1PqA44a0RWNKEIF4os58UWSsuF/ylUVzv+8yTRBfsFuukH9/3tdn0jd5Hn8JXMhaA27ZpIr/cX",
+	"mg0xes7KtBvH96ocPGnu9SLbr2vFZ0uyWyoSenLon4xDfRFwctiJA/7E+EOk20dczp3XkaMdWQiK6EOR",
+	"rNFfoFc8sUusQBt3DpLJ3eRu4vCRgaQZJzF57R7ZWOLSZcp4q5ncfwtwIbHTu53/wUhc3AwZd4TbsZqm",
+	"gKANiT89EviaCZfscyoMWGtJTL7k4MSUhywJVwj+DD7zmuK8mQVPOT7N1KG22s18EKzz5tlywlRZRVEz",
+	"4UwpAVSSzebB5ofJlDSex15NJv52SiL4bKFZJnjigjP+HEC5m/CcSzkXRYcrBibRPPNVE/m4hMjRm8Fo",
+	"SU1k8iQBYMDuLIR+6tASf0FfY4IFMegIQvuIIF1YkO0u0R/C8XIEpf6FE/E1HRj8WbF1Z6bvvYDeVGtH",
+	"m9ObgxC+7DyErcIXUckiGkn4J9JgVK4TcB1mADIKdXxETURtcy7QhfvNNcJtTTY+5InKBYukwiiXDLRB",
+	"azSWtsRyiFBFXK6o4Cwya4n0a7+QuRmV2HT8yNnGLsdAgD8LGvD6ztPDIbE6LrFEvaOScDlRxtsxgroG",
+	"nbSnkjcdZkRjwN4lCRgTcRPlkua4VJr/W6z/5rrYptICe86rkAZW5GPfGPZ4GfA74ADWAay9KQcoJssj",
+	"cPVK8ckQ232NsXexdFaN0Y9UuZmaYcjqfme1LaWqNzq1R9J90eU7k6bhUvIbUqeVl6Q3pk6L++VmdbpD",
+	"6hXk6e4l8XXlaXXdQZ72C5pVTj2pT3eIvVGBehEah+qgr9VBhWRPVAM3qFAHtH67aG1QqDu83qhEbVdn",
+	"9CNXBok6pHVn5RS6zw+a9an/PGF4b3rTyrT0+dqN6dLwdUyzKg34vIIk3X65d11BWl51kKN9QmSJPU8q",
+	"0YDSG5WhF2BwOP/7ev6XGPXYgX+D+nOA6bcJ0wbtGYB6o8KzTTXRhxQZROeQzV0UTZsR8Yb7LK2Ov9eK",
+	"5Yn9J/JTkRHJtSAxWSJmJh5vb//XL3Yf+d/NxfqOwYpYUVad771KqIh+hRUIlRXfGO9NG4/HwvZbKoPx",
+	"28nbCbGZHyx/3HJH6ffgxbPSLxmLZ9sMe9j8FwAA////QbP2BEgAAA==",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file
