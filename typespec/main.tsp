@@ -53,6 +53,8 @@ model Property {
     landlord_id: string;
     ...Address;
     management_fee: float64;
+    management_gained: plainDate;
+    management_lost?: plainDate;
     is_archived?: offsetDateTime;
     created_at: offsetDateTime;
     updated_at: offsetDateTime;
@@ -64,6 +66,7 @@ model CreateProperty {
   landlord_id: string;
   ...Address;
   management_fee: float64;
+  management_gained: plainDate;
 }
 
 model PropertyList {

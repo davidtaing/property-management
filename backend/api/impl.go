@@ -510,6 +510,8 @@ func (s *Server) PropertiesList(w http.ResponseWriter, r *http.Request, params P
 			country,
 			landlord_id,
 			management_fee,
+			management_gained,
+			management_lost,
 			is_archived,
 			created_at,
 			updated_at
@@ -539,6 +541,8 @@ func (s *Server) PropertiesList(w http.ResponseWriter, r *http.Request, params P
 			&property.Country,
 			&property.LandlordId,
 			&property.ManagementFee,
+			&property.ManagementGained,
+			&property.ManagementLost,
 			&property.IsArchived,
 			&property.CreatedAt,
 			&property.UpdatedAt,
@@ -607,7 +611,8 @@ func (s *Server) PropertiesCreate(w http.ResponseWriter, r *http.Request) {
 			postcode,
 			country,
 			landlord_id,
-			management_fee
+			management_fee,
+			management_gained
 		) VALUES (
 			$1,
 			$2,
@@ -616,7 +621,8 @@ func (s *Server) PropertiesCreate(w http.ResponseWriter, r *http.Request) {
 			$5,
 			$6,
 			$7,
-			$8
+			$8,
+			$9
 		) RETURNING 
 			id, 
 			address_line_1, 
@@ -627,6 +633,8 @@ func (s *Server) PropertiesCreate(w http.ResponseWriter, r *http.Request) {
 			country,
 			landlord_id, 
 			management_fee, 
+			management_gained,
+			management_lost,
 			is_archived,
 			created_at,
 			updated_at
@@ -644,6 +652,7 @@ func (s *Server) PropertiesCreate(w http.ResponseWriter, r *http.Request) {
 		payload.Country,
 		payload.LandlordId,
 		payload.ManagementFee,
+		payload.ManagementGained,
 	)
 
 	var createdProperty Property
@@ -658,6 +667,8 @@ func (s *Server) PropertiesCreate(w http.ResponseWriter, r *http.Request) {
 		&createdProperty.Country,
 		&createdProperty.LandlordId,
 		&createdProperty.ManagementFee,
+		&createdProperty.ManagementGained,
+		&createdProperty.ManagementLost,
 		&createdProperty.IsArchived,
 		&createdProperty.CreatedAt,
 		&createdProperty.UpdatedAt,
@@ -698,6 +709,8 @@ func (s *Server) PropertiesArchive(w http.ResponseWriter, r *http.Request, id st
 			country,
 			landlord_id,
 			management_fee,
+			management_gained,
+			management_lost,
 			is_archived,
 			created_at,
 			updated_at
@@ -713,6 +726,8 @@ func (s *Server) PropertiesArchive(w http.ResponseWriter, r *http.Request, id st
 		&archivedProperty.Country,
 		&archivedProperty.LandlordId,
 		&archivedProperty.ManagementFee,
+		&archivedProperty.ManagementGained,
+		&archivedProperty.ManagementLost,
 		&archivedProperty.IsArchived,
 		&archivedProperty.CreatedAt,
 		&archivedProperty.UpdatedAt,
@@ -747,6 +762,8 @@ func (s *Server) PropertiesGet(w http.ResponseWriter, r *http.Request, id string
 			country,
 			landlord_id,
 			management_fee,
+			management_gained,
+			management_lost,
 			is_archived,
 			created_at,
 			updated_at
@@ -764,6 +781,8 @@ func (s *Server) PropertiesGet(w http.ResponseWriter, r *http.Request, id string
 		&property.Country,
 		&property.LandlordId,
 		&property.ManagementFee,
+		&property.ManagementGained,
+		&property.ManagementLost,
 		&property.IsArchived,
 		&property.CreatedAt,
 		&property.UpdatedAt,
@@ -807,8 +826,9 @@ func (s *Server) PropertiesUpdate(w http.ResponseWriter, r *http.Request, id str
 			country = $6,
 			landlord_id = $7,
 			management_fee = $8,
+			management_gained = $9,
 			updated_at = NOW()
-		WHERE id = $9
+		WHERE id = $10
 		RETURNING 
 			id, 
 			address_line_1, 
@@ -819,6 +839,8 @@ func (s *Server) PropertiesUpdate(w http.ResponseWriter, r *http.Request, id str
 			country,
 			landlord_id, 
 			management_fee, 
+			management_gained,
+			management_lost,
 			is_archived,
 			created_at,
 			updated_at
@@ -835,6 +857,7 @@ func (s *Server) PropertiesUpdate(w http.ResponseWriter, r *http.Request, id str
 		payload.Country,
 		payload.LandlordId,
 		payload.ManagementFee,
+		payload.ManagementGained,
 		id,
 	)
 
@@ -850,6 +873,8 @@ func (s *Server) PropertiesUpdate(w http.ResponseWriter, r *http.Request, id str
 		&updatedProperty.Country,
 		&updatedProperty.LandlordId,
 		&updatedProperty.ManagementFee,
+		&updatedProperty.ManagementGained,
+		&updatedProperty.ManagementLost,
 		&updatedProperty.IsArchived,
 		&updatedProperty.CreatedAt,
 		&updatedProperty.UpdatedAt,

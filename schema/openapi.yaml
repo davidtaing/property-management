@@ -652,6 +652,7 @@ components:
         - state
         - country
         - management_fee
+        - management_gained
       properties:
         landlord_id:
           type: string
@@ -671,6 +672,9 @@ components:
         management_fee:
           type: number
           format: double
+        management_gained:
+          type: string
+          format: date
     CreateTenant:
       type: object
       required:
@@ -810,6 +814,7 @@ components:
         - state
         - country
         - management_fee
+        - management_gained
         - created_at
         - updated_at
       properties:
@@ -835,6 +840,12 @@ components:
         management_fee:
           type: number
           format: double
+        management_gained:
+          type: string
+          format: date
+        management_lost:
+          type: string
+          format: date
         is_archived:
           type: string
           format: date-time
