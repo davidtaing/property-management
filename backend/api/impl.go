@@ -39,7 +39,8 @@ func (s *Server) LandlordsList(w http.ResponseWriter, r *http.Request, params La
 	limit, page, offset := handlePaginationParams(params)
 
 	conditions := map[string]interface{}{
-		"name": params.Name,
+		"name":          params.Name,
+		"archived_only": params.ArchivedOnly,
 	}
 
 	whereClause, queryParams, paramCount := buildWhereClause(conditions)
@@ -49,6 +50,8 @@ func (s *Server) LandlordsList(w http.ResponseWriter, r *http.Request, params La
 		SELECT COUNT(*) 
 		FROM landlords
 		%s`, whereClause)
+
+	fmt.Println(countSQL)
 
 	var total int
 	err := s.dbpool.QueryRow(context.Background(), countSQL, queryParams...).Scan(&total)
@@ -474,7 +477,8 @@ func (s *Server) PropertiesList(w http.ResponseWriter, r *http.Request, params P
 	limit, page, offset := handlePaginationParams(params)
 
 	conditions := map[string]interface{}{
-		"full_address": params.Address,
+		"full_address":  params.Address,
+		"archived_only": params.ArchivedOnly,
 	}
 
 	whereClause, queryParams, paramCount := buildWhereClause(conditions)
@@ -873,7 +877,8 @@ func (s *Server) TenantsList(w http.ResponseWriter, r *http.Request, params Tena
 	limit, page, offset := handlePaginationParams(params)
 
 	conditions := map[string]interface{}{
-		"name": params.Name,
+		"name":          params.Name,
+		"archived_only": params.ArchivedOnly,
 	}
 
 	whereClause, queryParams, paramCount := buildWhereClause(conditions)
@@ -1328,6 +1333,12 @@ func buildWhereClause(conditions map[string]interface{}) (string, []interface{},
 				clauses = append(clauses, fmt.Sprintf("%s ILIKE $%d", column, paramCount))
 				params = append(params, "%"+*v+"%")
 				paramCount++
+			}
+		case "archived_only":
+			if v, ok := value.(*bool); ok && v != nil && *v {
+				clauses = append(clauses, "is_archived is not null")
+			} else {
+				clauses = append(clauses, "is_archived is null")
 			}
 		default:
 			clauses = append(clauses, fmt.Sprintf("%s = $%d", column, paramCount))

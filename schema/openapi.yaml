@@ -31,6 +31,12 @@ paths:
           schema:
             type: string
           explode: false
+        - name: archived_only
+          in: query
+          required: false
+          schema:
+            type: boolean
+          explode: false
       responses:
         '200':
           description: The request has succeeded.
@@ -218,6 +224,12 @@ paths:
           schema:
             type: string
           explode: false
+        - name: archived_only
+          in: query
+          required: false
+          schema:
+            type: boolean
+          explode: false
       responses:
         '200':
           description: The request has succeeded.
@@ -404,6 +416,12 @@ paths:
           required: false
           schema:
             type: string
+          explode: false
+        - name: archived_only
+          in: query
+          required: false
+          schema:
+            type: boolean
           explode: false
       responses:
         '200':
