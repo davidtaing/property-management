@@ -682,6 +682,10 @@ components:
         - name
         - email
         - mobile
+        - paid_from
+        - paid_to
+        - rental_amount
+        - frequency
         - original_start_date
         - start_date
         - end_date
@@ -697,6 +701,17 @@ components:
         mobile:
           type: string
         phone:
+          type: string
+        paid_from:
+          type: string
+          format: date
+        paid_to:
+          type: string
+          format: date
+        rental_amount:
+          type: number
+          format: double
+        frequency:
           type: string
         original_start_date:
           type: string
@@ -875,6 +890,10 @@ components:
         - name
         - email
         - mobile
+        - paid_from
+        - paid_to
+        - rental_amount
+        - frequency
         - original_start_date
         - start_date
         - end_date
@@ -896,6 +915,17 @@ components:
         mobile:
           type: string
         phone:
+          type: string
+        paid_from:
+          type: string
+          format: date
+        paid_to:
+          type: string
+          format: date
+        rental_amount:
+          type: number
+          format: double
+        frequency:
           type: string
         original_start_date:
           type: string

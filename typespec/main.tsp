@@ -85,6 +85,10 @@ model Tenant {
     email: string;
     mobile: string;
     phone?: string;
+    paid_from: plainDate;
+    paid_to: plainDate;
+    rental_amount: float64;
+    frequency: string;
     original_start_date: plainDate;
     start_date: plainDate;
     end_date: plainDate;
@@ -104,6 +108,10 @@ model CreateTenant {
   email: string;
   mobile: string;
   phone?: string;
+  paid_from: plainDate;
+  paid_to: plainDate;
+  rental_amount: float64;
+  frequency: string;
   original_start_date: plainDate;
   start_date: plainDate;
   end_date: plainDate;
