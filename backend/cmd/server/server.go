@@ -57,11 +57,11 @@ func main() {
 
 	r := mux.NewRouter()
 
+	r.Use(middleware.LoggingMiddleware(logger))
+
 	// Use our validation middleware to check all requests against the
 	// OpenAPI schema.
 	r.Use(oapiMiddleware.OapiRequestValidator(swagger))
-
-	r.Use(middleware.LoggingMiddleware(logger))
 
 	h := api.HandlerFromMux(server, r)
 
