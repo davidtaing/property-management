@@ -460,6 +460,48 @@ func (s *Server) LandlordsUpdate(w http.ResponseWriter, r *http.Request, id stri
 	json.NewEncoder(w).Encode(updatedLandlord)
 }
 
+func scanProperty(scanner interface {
+	Scan(dest ...interface{}) error
+}) (Property, error) {
+	var property Property
+
+	var managementGained pgtype.Date
+	var managementLost *pgtype.Date
+
+	err := scanner.Scan(
+		&property.Id,
+		&property.StreetNumber,
+		&property.StreetName,
+		&property.Suburb,
+		&property.State,
+		&property.Postcode,
+		&property.Country,
+		&property.LandlordId,
+		&property.ManagementFee,
+		&managementGained,
+		&managementLost,
+		&property.IsArchived,
+		&property.CreatedAt,
+		&property.UpdatedAt,
+	)
+
+	if err != nil {
+		return property, err
+	}
+
+	property.ManagementGained = openapi_types.Date{
+		Time: managementGained.Time,
+	}
+
+	if managementLost != nil {
+		property.ManagementLost = &openapi_types.Date{
+			Time: managementLost.Time,
+		}
+	}
+
+	return property, nil
+}
+
 func (s *Server) PropertiesList(w http.ResponseWriter, r *http.Request, params PropertiesListParams) {
 	properties := []Property{}
 
@@ -520,27 +562,13 @@ func (s *Server) PropertiesList(w http.ResponseWriter, r *http.Request, params P
 	defer rows.Close()
 
 	for rows.Next() {
-		var property Property
-		err := rows.Scan(
-			&property.Id,
-			&property.StreetNumber,
-			&property.StreetName,
-			&property.Suburb,
-			&property.State,
-			&property.Postcode,
-			&property.Country,
-			&property.LandlordId,
-			&property.ManagementFee,
-			&property.ManagementGained,
-			&property.ManagementLost,
-			&property.IsArchived,
-			&property.CreatedAt,
-			&property.UpdatedAt,
-		)
+		property, err := scanProperty(rows)
+
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+
 		properties = append(properties, property)
 	}
 
@@ -647,24 +675,7 @@ func (s *Server) PropertiesCreate(w http.ResponseWriter, r *http.Request) {
 		payload.ManagementGained,
 	)
 
-	var createdProperty Property
-
-	err = row.Scan(
-		&createdProperty.Id,
-		&createdProperty.StreetNumber,
-		&createdProperty.StreetName,
-		&createdProperty.Suburb,
-		&createdProperty.State,
-		&createdProperty.Postcode,
-		&createdProperty.Country,
-		&createdProperty.LandlordId,
-		&createdProperty.ManagementFee,
-		&createdProperty.ManagementGained,
-		&createdProperty.ManagementLost,
-		&createdProperty.IsArchived,
-		&createdProperty.CreatedAt,
-		&createdProperty.UpdatedAt,
-	)
+	createdProperty, err := scanProperty(row)
 
 	if err != nil {
 		s.logger.Info("Failed to create property", "error", err)
@@ -709,24 +720,12 @@ func (s *Server) PropertiesArchive(w http.ResponseWriter, r *http.Request, id st
 			updated_at
 	`
 
-	err := s.dbpool.QueryRow(context.Background(), sql, id).Scan(
-		&archivedProperty.Id,
-		&archivedProperty.StreetNumber,
-		&archivedProperty.StreetName,
-		&archivedProperty.Suburb,
-		&archivedProperty.State,
-		&archivedProperty.Postcode,
-		&archivedProperty.Country,
-		&archivedProperty.LandlordId,
-		&archivedProperty.ManagementFee,
-		&archivedProperty.ManagementGained,
-		&archivedProperty.ManagementLost,
-		&archivedProperty.IsArchived,
-		&archivedProperty.CreatedAt,
-		&archivedProperty.UpdatedAt,
-	)
+	row := s.dbpool.QueryRow(context.Background(), sql, id)
+
+	archivedProperty, err := scanProperty(row)
 
 	if err != nil {
+		s.logger.Info("Failed to archive property", "error", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(Error{
 			Code:    http.StatusInternalServerError,
@@ -765,22 +764,9 @@ func (s *Server) PropertiesGet(w http.ResponseWriter, r *http.Request, id string
 		WHERE id = $1
 	`
 
-	err := s.dbpool.QueryRow(context.Background(), sql, id).Scan(
-		&property.Id,
-		&property.StreetNumber,
-		&property.StreetName,
-		&property.Suburb,
-		&property.State,
-		&property.Postcode,
-		&property.Country,
-		&property.LandlordId,
-		&property.ManagementFee,
-		&property.ManagementGained,
-		&property.ManagementLost,
-		&property.IsArchived,
-		&property.CreatedAt,
-		&property.UpdatedAt,
-	)
+	row := s.dbpool.QueryRow(context.Background(), sql, id)
+
+	property, err := scanProperty(row)
 
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -832,7 +818,7 @@ func (s *Server) PropertiesUpdate(w http.ResponseWriter, r *http.Request, id str
 			is_archived,
 			created_at,
 			updated_at
-	`, setClause, paramCount)
+	`, setClause, paramCount+1)
 
 	row := s.dbpool.QueryRow(
 		context.Background(),
@@ -840,26 +826,10 @@ func (s *Server) PropertiesUpdate(w http.ResponseWriter, r *http.Request, id str
 		values...,
 	)
 
-	var updatedProperty Property
-
-	err = row.Scan(
-		&updatedProperty.Id,
-		&updatedProperty.StreetNumber,
-		&updatedProperty.StreetName,
-		&updatedProperty.Suburb,
-		&updatedProperty.State,
-		&updatedProperty.Postcode,
-		&updatedProperty.Country,
-		&updatedProperty.LandlordId,
-		&updatedProperty.ManagementFee,
-		&updatedProperty.ManagementGained,
-		&updatedProperty.ManagementLost,
-		&updatedProperty.IsArchived,
-		&updatedProperty.CreatedAt,
-		&updatedProperty.UpdatedAt,
-	)
+	updatedProperty, err := scanProperty(row)
 
 	if err != nil {
+		s.logger.Info("Failed to update property", "error", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(Error{
 			Code:    http.StatusInternalServerError,
