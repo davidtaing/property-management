@@ -491,8 +491,8 @@ func (s *Server) PropertiesList(w http.ResponseWriter, r *http.Request, params P
 	sql = fmt.Sprintf(`
 		SELECT 
 			id,
-			address_line_1,
-			address_line_2,
+			street_number,
+			street_name,
 			suburb,
 			state,
 			postcode,
@@ -522,8 +522,8 @@ func (s *Server) PropertiesList(w http.ResponseWriter, r *http.Request, params P
 		var property Property
 		err := rows.Scan(
 			&property.Id,
-			&property.AddressLine1,
-			&property.AddressLine2,
+			&property.StreetNumber,
+			&property.StreetName,
 			&property.Suburb,
 			&property.State,
 			&property.Postcode,
@@ -593,8 +593,8 @@ func (s *Server) PropertiesCreate(w http.ResponseWriter, r *http.Request) {
 	sql := `
 		INSERT INTO properties (
 			id,
-			address_line_1,
-			address_line_2,
+			street_number,
+			street_name,
 			suburb,
 			state,	
 			postcode,
@@ -614,8 +614,8 @@ func (s *Server) PropertiesCreate(w http.ResponseWriter, r *http.Request) {
 			$9
 		) RETURNING 
 			id, 
-			address_line_1, 
-			address_line_2, 
+			street_number, 
+			street_name, 
 			suburb, 
 			state, 
 			postcode, 
@@ -633,8 +633,8 @@ func (s *Server) PropertiesCreate(w http.ResponseWriter, r *http.Request) {
 		context.Background(),
 		sql,
 		id.String(),
-		payload.AddressLine1,
-		payload.AddressLine2,
+		payload.StreetNumber,
+		payload.StreetName,
 		payload.Suburb,
 		payload.State,
 		payload.Postcode,
@@ -648,8 +648,8 @@ func (s *Server) PropertiesCreate(w http.ResponseWriter, r *http.Request) {
 
 	err = row.Scan(
 		&createdProperty.Id,
-		&createdProperty.AddressLine1,
-		&createdProperty.AddressLine2,
+		&createdProperty.StreetNumber,
+		&createdProperty.StreetName,
 		&createdProperty.Suburb,
 		&createdProperty.State,
 		&createdProperty.Postcode,
@@ -690,8 +690,8 @@ func (s *Server) PropertiesArchive(w http.ResponseWriter, r *http.Request, id st
 		WHERE id = $1
 		RETURNING 
 			id,
-			address_line_1,
-			address_line_2,
+			street_number,
+			street_name,
 			suburb,
 			state,
 			postcode,
@@ -707,8 +707,8 @@ func (s *Server) PropertiesArchive(w http.ResponseWriter, r *http.Request, id st
 
 	err := s.dbpool.QueryRow(context.Background(), sql, id).Scan(
 		&archivedProperty.Id,
-		&archivedProperty.AddressLine1,
-		&archivedProperty.AddressLine2,
+		&archivedProperty.StreetNumber,
+		&archivedProperty.StreetName,
 		&archivedProperty.Suburb,
 		&archivedProperty.State,
 		&archivedProperty.Postcode,
@@ -742,9 +742,10 @@ func (s *Server) PropertiesGet(w http.ResponseWriter, r *http.Request, id string
 	var property Property
 
 	sql := `
-		SELECT id,
-			address_line_1,
-			address_line_2,
+		SELECT 
+			id,
+			street_number,
+			street_name,
 			suburb,
 			state,
 			postcode,
@@ -762,8 +763,8 @@ func (s *Server) PropertiesGet(w http.ResponseWriter, r *http.Request, id string
 
 	err := s.dbpool.QueryRow(context.Background(), sql, id).Scan(
 		&property.Id,
-		&property.AddressLine1,
-		&property.AddressLine2,
+		&property.StreetNumber,
+		&property.StreetName,
 		&property.Suburb,
 		&property.State,
 		&property.Postcode,
@@ -814,8 +815,8 @@ func (s *Server) PropertiesUpdate(w http.ResponseWriter, r *http.Request, id str
 		WHERE id = $%d
 		RETURNING 
 			id, 
-			address_line_1, 
-			address_line_2, 
+			street_number, 
+			street_name, 
 			suburb, 
 			state, 
 			postcode, 
@@ -839,8 +840,8 @@ func (s *Server) PropertiesUpdate(w http.ResponseWriter, r *http.Request, id str
 
 	err = row.Scan(
 		&updatedProperty.Id,
-		&updatedProperty.AddressLine1,
-		&updatedProperty.AddressLine2,
+		&updatedProperty.StreetNumber,
+		&updatedProperty.StreetName,
 		&updatedProperty.Suburb,
 		&updatedProperty.State,
 		&updatedProperty.Postcode,
@@ -1467,16 +1468,16 @@ func buildPropertyUpdateSetClause(payload UpdateProperty) (string, []interface{}
 	values := []interface{}{}
 	paramCount := 0
 
-	if payload.AddressLine1 != nil && *payload.AddressLine1 != "" {
+	if payload.StreetNumber != nil && *payload.StreetNumber != "" {
 		paramCount++
-		fields = append(fields, fmt.Sprintf("address_line_1 = $%d", paramCount))
-		values = append(values, *payload.AddressLine1)
+		fields = append(fields, fmt.Sprintf("street_number = $%d", paramCount))
+		values = append(values, *payload.StreetNumber)
 	}
 
-	if payload.AddressLine2 != nil && *payload.AddressLine2 != "" {
+	if payload.StreetName != nil && *payload.StreetName != "" {
 		paramCount++
-		fields = append(fields, fmt.Sprintf("address_line_2 = $%d", paramCount))
-		values = append(values, *payload.AddressLine2)
+		fields = append(fields, fmt.Sprintf("street_name = $%d", paramCount))
+		values = append(values, *payload.StreetName)
 	}
 
 	if payload.Suburb != nil && *payload.Suburb != "" {

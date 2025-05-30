@@ -588,27 +588,6 @@ paths:
         - Tenant
 components:
   schemas:
-    Address:
-      type: object
-      required:
-        - address_line_1
-        - suburb
-        - postcode
-        - state
-        - country
-      properties:
-        address_line_1:
-          type: string
-        address_line_2:
-          type: string
-        suburb:
-          type: string
-        postcode:
-          type: string
-        state:
-          type: string
-        country:
-          type: string
     CreateLandlord:
       type: object
       required:
@@ -646,7 +625,8 @@ components:
       type: object
       required:
         - landlord_id
-        - address_line_1
+        - street_number
+        - street_name
         - suburb
         - postcode
         - state
@@ -657,9 +637,9 @@ components:
         landlord_id:
           type: string
           format: uuid
-        address_line_1:
+        street_number:
           type: string
-        address_line_2:
+        street_name:
           type: string
         suburb:
           type: string
@@ -790,12 +770,27 @@ components:
             $ref: '#/components/schemas/Landlord'
         pagination:
           $ref: '#/components/schemas/PaginatedMetadata'
-    OptionalAddress:
+    OptionalPostalAddress:
       type: object
       properties:
         address_line_1:
           type: string
         address_line_2:
+          type: string
+        suburb:
+          type: string
+        postcode:
+          type: string
+        state:
+          type: string
+        country:
+          type: string
+    OptionalStructuredAddress:
+      type: object
+      properties:
+        street_number:
+          type: string
+        street_name:
           type: string
         suburb:
           type: string
@@ -829,12 +824,34 @@ components:
         total_pages:
           type: integer
           format: int32
+    PostalAddress:
+      type: object
+      required:
+        - address_line_1
+        - suburb
+        - postcode
+        - state
+        - country
+      properties:
+        address_line_1:
+          type: string
+        address_line_2:
+          type: string
+        suburb:
+          type: string
+        postcode:
+          type: string
+        state:
+          type: string
+        country:
+          type: string
     Property:
       type: object
       required:
         - id
         - landlord_id
-        - address_line_1
+        - street_number
+        - street_name
         - suburb
         - postcode
         - state
@@ -851,9 +868,9 @@ components:
         landlord_id:
           type: string
           format: uuid
-        address_line_1:
+        street_number:
           type: string
-        address_line_2:
+        street_name:
           type: string
         suburb:
           type: string
@@ -893,6 +910,29 @@ components:
             $ref: '#/components/schemas/Property'
         pagination:
           $ref: '#/components/schemas/PaginatedMetadata'
+    StructuredAddress:
+      type: object
+      required:
+        - street_number
+        - street_name
+        - suburb
+        - postcode
+        - state
+        - country
+      properties:
+        street_number:
+          type: string
+        street_name:
+          type: string
+        suburb:
+          type: string
+        postcode:
+          type: string
+        state:
+          type: string
+        country:
+          type: string
+      description: Allows granular sorting by street name and number
     Tenant:
       type: object
       required:
@@ -1007,9 +1047,9 @@ components:
     UpdateProperty:
       type: object
       properties:
-        address_line_1:
+        street_number:
           type: string
-        address_line_2:
+        street_name:
           type: string
         suburb:
           type: string

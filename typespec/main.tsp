@@ -7,7 +7,7 @@ using Http;
 
 namespace PropertyManagementService;
 
-model Address {
+model PostalAddress {
   address_line_1: string;
   address_line_2?: string;
   suburb: string;
@@ -16,9 +16,28 @@ model Address {
   country: string;
 }
 
-model OptionalAddress {
+model OptionalPostalAddress {
   address_line_1?: string;
   address_line_2?: string;
+  suburb?: string;
+  postcode?: string;
+  state?: string;
+  country?: string;
+}
+
+@doc("Allows granular sorting by street name and number")
+model StructuredAddress {
+  street_number: string;
+  street_name: string;
+  suburb: string;
+  postcode: string;
+  state: string;
+  country: string;
+}
+
+model OptionalStructuredAddress {
+  street_number?: string;
+  street_name?: string;
   suburb?: string;
   postcode?: string;
   state?: string;
@@ -34,7 +53,7 @@ model Landlord {
     email: string;
     mobile: string;
     phone?: string;
-    ...Address;
+    ...PostalAddress;
     is_archived?: offsetDateTime;
     created_at: offsetDateTime;
     updated_at: offsetDateTime;
@@ -46,7 +65,7 @@ model CreateLandlord {
   email: string;
   mobile: string;
   phone?: string;
-  ...Address;
+  ...PostalAddress;
 }
 
 model UpdateLandlord {
@@ -55,7 +74,7 @@ model UpdateLandlord {
     email?: string;
     mobile?: string;
     phone?: string;
-    ...OptionalAddress;
+    ...OptionalPostalAddress;
     is_archived?: offsetDateTime | null;
 }
 
@@ -70,7 +89,7 @@ model Property {
     id: string;
     @format("uuid")
     landlord_id: string;
-    ...Address;
+    ...StructuredAddress;
     management_fee: float64;
     management_gained: plainDate;
     management_lost?: plainDate;
@@ -82,13 +101,13 @@ model Property {
 model CreateProperty {
   @format("uuid")
   landlord_id: string;
-  ...Address;
+  ...StructuredAddress;
   management_fee: float64;
   management_gained: plainDate;
 }
 
 model UpdateProperty {
-  ...OptionalAddress;
+  ...OptionalStructuredAddress;
   management_fee?: float64;
   management_gained?: plainDate;
   management_lost?: plainDate | null;
