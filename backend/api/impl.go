@@ -583,6 +583,7 @@ func (s *Server) PropertiesCreate(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.NewV7()
 
 	if err != nil {
+		s.logger.Info("Failed to generate UUID", "error", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(Error{
 			Code:    http.StatusInternalServerError,
@@ -612,7 +613,8 @@ func (s *Server) PropertiesCreate(w http.ResponseWriter, r *http.Request) {
 			$6,
 			$7,
 			$8,
-			$9
+			$9,
+			$10
 		) RETURNING 
 			id, 
 			street_number, 
@@ -665,6 +667,7 @@ func (s *Server) PropertiesCreate(w http.ResponseWriter, r *http.Request) {
 	)
 
 	if err != nil {
+		s.logger.Info("Failed to create property", "error", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(Error{
 			Code:    http.StatusInternalServerError,
