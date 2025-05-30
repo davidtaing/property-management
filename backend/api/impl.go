@@ -506,6 +506,7 @@ func (s *Server) PropertiesList(w http.ResponseWriter, r *http.Request, params P
 			updated_at
 		FROM properties
 		%s
+		ORDER BY street_name, street_number
 		LIMIT $%d
 		OFFSET $%d
 	`, whereClause, paramCount, paramCount+1)
