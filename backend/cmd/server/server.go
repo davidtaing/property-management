@@ -8,9 +8,12 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/clerk/clerk-sdk-go/v2"
+	clerkhttp "github.com/clerk/clerk-sdk-go/v2/http"
 	"github.com/davidtaing/property-management/api"
 	"github.com/davidtaing/property-management/internal/config"
 	"github.com/davidtaing/property-management/internal/middleware"
+	oapifilter "github.com/getkin/kin-openapi/openapi3filter"
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v5/pgxpool"
 	oapiMiddleware "github.com/oapi-codegen/nethttp-middleware"
@@ -25,6 +28,8 @@ func main() {
 		logger.Error(err.Error())
 		os.Exit(1)
 	}
+
+	clerk.SetKey(config.ClerkKey)
 
 	dbpool, err := pgxpool.New(context.Background(), config.DatabaseURL)
 
@@ -58,15 +63,24 @@ func main() {
 	r := mux.NewRouter()
 
 	r.Use(middleware.LoggingMiddleware(logger))
+	r.Use(middleware.AuthMiddleware())
+
+	validatorOptions := &oapiMiddleware.Options{}
+
+	// stub this out and use the clerkhttp middleware instead
+	validatorOptions.Options.AuthenticationFunc = func(c context.Context, input *oapifilter.AuthenticationInput) error {
+		return nil
+	}
 
 	// Use our validation middleware to check all requests against the
 	// OpenAPI schema.
-	r.Use(oapiMiddleware.OapiRequestValidator(swagger))
+	r.Use(oapiMiddleware.OapiRequestValidatorWithOptions(swagger, validatorOptions))
 
 	h := api.HandlerFromMux(server, r)
 
 	c := setupCors(config, logger)
 	h = c.Handler(h)
+	h = clerkhttp.WithHeaderAuthorization()(h)
 
 	s := &http.Server{
 		Handler: h,

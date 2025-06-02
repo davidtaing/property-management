@@ -6,6 +6,7 @@ package api
 import (
 	"bytes"
 	"compress/gzip"
+	"context"
 	"encoding/base64"
 	"fmt"
 	"net/http"
@@ -18,6 +19,10 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/oapi-codegen/runtime"
 	openapi_types "github.com/oapi-codegen/runtime/types"
+)
+
+const (
+	BearerAuthScopes = "BearerAuth.Scopes"
 )
 
 // CreateLandlord defines model for CreateLandlord.
@@ -307,6 +312,12 @@ func (siw *ServerInterfaceWrapper) LandlordsList(w http.ResponseWriter, r *http.
 
 	var err error
 
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
 	// Parameter object where we will unmarshal all parameters from the context
 	var params LandlordsListParams
 
@@ -356,6 +367,12 @@ func (siw *ServerInterfaceWrapper) LandlordsList(w http.ResponseWriter, r *http.
 // LandlordsCreate operation middleware
 func (siw *ServerInterfaceWrapper) LandlordsCreate(w http.ResponseWriter, r *http.Request) {
 
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.LandlordsCreate(w, r)
 	}))
@@ -380,6 +397,12 @@ func (siw *ServerInterfaceWrapper) LandlordsArchive(w http.ResponseWriter, r *ht
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
 		return
 	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.LandlordsArchive(w, r, id)
@@ -406,6 +429,12 @@ func (siw *ServerInterfaceWrapper) LandlordsGet(w http.ResponseWriter, r *http.R
 		return
 	}
 
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.LandlordsGet(w, r, id)
 	}))
@@ -431,6 +460,12 @@ func (siw *ServerInterfaceWrapper) LandlordsUpdate(w http.ResponseWriter, r *htt
 		return
 	}
 
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.LandlordsUpdate(w, r, id)
 	}))
@@ -446,6 +481,12 @@ func (siw *ServerInterfaceWrapper) LandlordsUpdate(w http.ResponseWriter, r *htt
 func (siw *ServerInterfaceWrapper) PropertiesList(w http.ResponseWriter, r *http.Request) {
 
 	var err error
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params PropertiesListParams
@@ -496,6 +537,12 @@ func (siw *ServerInterfaceWrapper) PropertiesList(w http.ResponseWriter, r *http
 // PropertiesCreate operation middleware
 func (siw *ServerInterfaceWrapper) PropertiesCreate(w http.ResponseWriter, r *http.Request) {
 
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.PropertiesCreate(w, r)
 	}))
@@ -520,6 +567,12 @@ func (siw *ServerInterfaceWrapper) PropertiesArchive(w http.ResponseWriter, r *h
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
 		return
 	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.PropertiesArchive(w, r, id)
@@ -546,6 +599,12 @@ func (siw *ServerInterfaceWrapper) PropertiesGet(w http.ResponseWriter, r *http.
 		return
 	}
 
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.PropertiesGet(w, r, id)
 	}))
@@ -571,6 +630,12 @@ func (siw *ServerInterfaceWrapper) PropertiesUpdate(w http.ResponseWriter, r *ht
 		return
 	}
 
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.PropertiesUpdate(w, r, id)
 	}))
@@ -586,6 +651,12 @@ func (siw *ServerInterfaceWrapper) PropertiesUpdate(w http.ResponseWriter, r *ht
 func (siw *ServerInterfaceWrapper) TenantsList(w http.ResponseWriter, r *http.Request) {
 
 	var err error
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params TenantsListParams
@@ -636,6 +707,12 @@ func (siw *ServerInterfaceWrapper) TenantsList(w http.ResponseWriter, r *http.Re
 // TenantsCreate operation middleware
 func (siw *ServerInterfaceWrapper) TenantsCreate(w http.ResponseWriter, r *http.Request) {
 
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.TenantsCreate(w, r)
 	}))
@@ -660,6 +737,12 @@ func (siw *ServerInterfaceWrapper) TenantsArchive(w http.ResponseWriter, r *http
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
 		return
 	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.TenantsArchive(w, r, id)
@@ -686,6 +769,12 @@ func (siw *ServerInterfaceWrapper) TenantsGet(w http.ResponseWriter, r *http.Req
 		return
 	}
 
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.TenantsGet(w, r, id)
 	}))
@@ -710,6 +799,12 @@ func (siw *ServerInterfaceWrapper) TenantsUpdate(w http.ResponseWriter, r *http.
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
 		return
 	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.TenantsUpdate(w, r, id)
@@ -871,32 +966,33 @@ func HandlerWithOptions(si ServerInterface, options GorillaServerOptions) http.H
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

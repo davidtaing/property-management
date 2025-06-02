@@ -11,6 +11,7 @@ import (
 type Config struct {
 	Env         string
 	DatabaseURL string
+	ClerkKey    string
 }
 
 func NewConfig() (*Config, error) {
@@ -30,5 +31,17 @@ func NewConfig() (*Config, error) {
 		env = "DEVELOPMENT"
 	}
 
-	return &Config{DatabaseURL: databaseURL, Env: env}, nil
+	clerkKey := os.Getenv("CLERK_KEY")
+
+	if clerkKey == "" {
+		return nil, fmt.Errorf("CLERK_KEY is not set")
+	}
+
+	config := &Config{
+		DatabaseURL: databaseURL,
+		Env:         env,
+		ClerkKey:    clerkKey,
+	}
+
+	return config, nil
 }

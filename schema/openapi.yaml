@@ -52,6 +52,8 @@ paths:
                 $ref: '#/components/schemas/Error'
       tags:
         - Landlord
+      security:
+        - BearerAuth: []
     post:
       operationId: Landlords_create
       parameters: []
@@ -82,6 +84,8 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/CreateLandlord'
+      security:
+        - BearerAuth: []
   /landlords/{id}:
     get:
       operationId: Landlords_get
@@ -118,6 +122,8 @@ paths:
                 $ref: '#/components/schemas/Error'
       tags:
         - Landlord
+      security:
+        - BearerAuth: []
     patch:
       operationId: Landlords_update
       parameters:
@@ -165,6 +171,8 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/UpdateLandlord'
+      security:
+        - BearerAuth: []
     delete:
       operationId: Landlords_archive
       parameters:
@@ -200,6 +208,8 @@ paths:
                 $ref: '#/components/schemas/Error'
       tags:
         - Landlord
+      security:
+        - BearerAuth: []
   /properties:
     get:
       operationId: Properties_list
@@ -245,6 +255,8 @@ paths:
                 $ref: '#/components/schemas/Error'
       tags:
         - Property
+      security:
+        - BearerAuth: []
     post:
       operationId: Properties_create
       parameters: []
@@ -275,6 +287,8 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/CreateProperty'
+      security:
+        - BearerAuth: []
   /properties/{id}:
     get:
       operationId: Properties_get
@@ -311,6 +325,8 @@ paths:
                 $ref: '#/components/schemas/Error'
       tags:
         - Property
+      security:
+        - BearerAuth: []
     patch:
       operationId: Properties_update
       parameters:
@@ -358,6 +374,8 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/UpdateProperty'
+      security:
+        - BearerAuth: []
     delete:
       operationId: Properties_archive
       parameters:
@@ -393,6 +411,8 @@ paths:
                 $ref: '#/components/schemas/Error'
       tags:
         - Property
+      security:
+        - BearerAuth: []
   /tenants:
     get:
       operationId: Tenants_list
@@ -438,6 +458,8 @@ paths:
                 $ref: '#/components/schemas/Error'
       tags:
         - Tenant
+      security:
+        - BearerAuth: []
     post:
       operationId: Tenants_create
       parameters: []
@@ -468,6 +490,8 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/CreateTenant'
+      security:
+        - BearerAuth: []
   /tenants/{id}:
     get:
       operationId: Tenants_get
@@ -504,6 +528,8 @@ paths:
                 $ref: '#/components/schemas/Error'
       tags:
         - Tenant
+      security:
+        - BearerAuth: []
     patch:
       operationId: Tenants_update
       parameters:
@@ -551,6 +577,8 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/UpdateTenant'
+      security:
+        - BearerAuth: []
     delete:
       operationId: Tenants_archive
       parameters:
@@ -586,6 +614,8 @@ paths:
                 $ref: '#/components/schemas/Error'
       tags:
         - Tenant
+      security:
+        - BearerAuth: []
 components:
   schemas:
     CreateLandlord:
@@ -1120,6 +1150,10 @@ components:
           type: string
           format: date-time
           nullable: true
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: Bearer
 servers:
   - url: https://property-management.fly.dev
     description: Production Server

@@ -201,6 +201,7 @@ model PaginatedMetadata {
 
 @route("/landlords")
 namespace Landlords {
+  @useAuth(BearerAuth)
   @tag("Landlord")
   @get
   op list(@query page?: int32, @query limit?: int32, @query name?: string, @query archived_only?: boolean): {
@@ -211,6 +212,7 @@ namespace Landlords {
     @body error: Error
   };
 
+  @useAuth(BearerAuth)
   @tag("Landlord")
   @get
   op get(@path id: string): {
@@ -227,6 +229,7 @@ namespace Landlords {
     @body error: Error;
   };
 
+  @useAuth(BearerAuth)
   @tag("Landlord")
   @post
   op create(@body landlord: CreateLandlord): {
@@ -240,6 +243,7 @@ namespace Landlords {
     @body error: Error;
   };
 
+  @useAuth(BearerAuth)
   @tag("Landlord")
   @patch
   op update(@path id: string, @body landlord: UpdateLandlord): {
@@ -259,6 +263,7 @@ namespace Landlords {
     @body error: Error;
   };
 
+  @useAuth(BearerAuth)
   @tag("Landlord")
   @delete
   op archive(@path id: string): {
@@ -278,6 +283,7 @@ namespace Landlords {
 
 @route("/properties")
 namespace Properties {
+  @useAuth(BearerAuth)
   @tag("Property")
   @get
   op list(@query page?: int32, @query limit?: int32, @query address?: string, @query archived_only?: boolean): {
@@ -288,6 +294,7 @@ namespace Properties {
     @body error: Error;
   };
 
+  @useAuth(BearerAuth)
   @tag("Property")
   @get
   op get(@path id: string): {
@@ -304,6 +311,7 @@ namespace Properties {
     @body error: Error;
   };
 
+  @useAuth(BearerAuth)
   @tag("Property")
   @post
   op create(@body property: CreateProperty): {
@@ -317,6 +325,7 @@ namespace Properties {
     @body error: Error;
   };
 
+  @useAuth(BearerAuth)
   @tag("Property")
   @patch
   op update(@path id: string, @body property: UpdateProperty): {
@@ -336,6 +345,7 @@ namespace Properties {
     @body error: Error;
   };
 
+  @useAuth(BearerAuth)
   @tag("Property")
   @delete
   op archive(@path id: string): {
@@ -355,6 +365,7 @@ namespace Properties {
 
 @route("/tenants")
 namespace Tenants {
+  @useAuth(BearerAuth)
   @tag("Tenant")
   @get
   op list(@query page?: int32, @query limit?: int32, @query name?: string, @query archived_only?: boolean): {
@@ -365,6 +376,7 @@ namespace Tenants {
     @body error: Error;
   };
 
+  @useAuth(BearerAuth)
   @tag("Tenant")
   @get
   op get(@path id: string): {
@@ -381,6 +393,7 @@ namespace Tenants {
     @body error: Error;
   };
 
+  @useAuth(BearerAuth)
   @tag("Tenant")
   @post
   op create(@body tenant: CreateTenant): {
@@ -394,6 +407,7 @@ namespace Tenants {
     @body error: Error;
   };
 
+  @useAuth(BearerAuth)
   @tag("Tenant")
   @patch
   op update(@path id: string, @body tenant: UpdateTenant): {
@@ -413,6 +427,7 @@ namespace Tenants {
     @body error: Error;
   };
 
+  @useAuth(BearerAuth)
   @tag("Tenant")
   @delete
   op archive(@path id: string): {
