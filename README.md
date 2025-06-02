@@ -2,6 +2,10 @@
 
 This project is a full-stack property management application designed to streamline the processes of managing rental properties, tenants, leases. It aims to provide property managers with a centralized, user-friendly platform for handling day-to-day operations efficiently.
 
+## Links
+- Swagger Doc: https://davidtaing.github.io/property-management/
+- Backend: https://property-management.fly.dev/
+
 ## Features (Planned)
 - RESTful API for property, tenant, and lease management
 - Authentication
