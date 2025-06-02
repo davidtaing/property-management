@@ -51,8 +51,6 @@ func (s *Server) LandlordsList(w http.ResponseWriter, r *http.Request, params La
 		FROM landlords
 		%s`, whereClause)
 
-	fmt.Println(countSQL)
-
 	var total int
 	err := s.dbpool.QueryRow(context.Background(), countSQL, queryParams...).Scan(&total)
 	if err != nil {
