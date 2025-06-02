@@ -79,8 +79,8 @@ func main() {
 	h := api.HandlerFromMux(server, r)
 
 	c := setupCors(config, logger)
-	h = c.Handler(h)
 	h = clerkhttp.WithHeaderAuthorization()(h)
+	h = c.Handler(h)
 
 	s := &http.Server{
 		Handler: h,
@@ -116,8 +116,12 @@ func setupCors(config *config.Config, logger *slog.Logger) *cors.Cors {
 	logger.Debug("Allowed origins", "origins", allowedOrigins)
 
 	c := cors.New(cors.Options{
-		AllowedOrigins: allowedOrigins,
-		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedOrigins:   allowedOrigins,
+		AllowedMethods:   []string{"GET", "POST", "PATCH", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Authorization", "Content-Type", "Accept"},
+		ExposedHeaders:   []string{"Authorization"},
+		AllowCredentials: true,
+		MaxAge:           300,
 	})
 
 	return c
