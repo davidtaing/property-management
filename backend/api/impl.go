@@ -458,48 +458,6 @@ func (s *Server) LandlordsUpdate(w http.ResponseWriter, r *http.Request, id stri
 	json.NewEncoder(w).Encode(updatedLandlord)
 }
 
-func scanProperty(scanner interface {
-	Scan(dest ...interface{}) error
-}) (Property, error) {
-	var property Property
-
-	var managementGained pgtype.Date
-	var managementLost *pgtype.Date
-
-	err := scanner.Scan(
-		&property.Id,
-		&property.StreetNumber,
-		&property.StreetName,
-		&property.Suburb,
-		&property.State,
-		&property.Postcode,
-		&property.Country,
-		&property.LandlordId,
-		&property.ManagementFee,
-		&managementGained,
-		&managementLost,
-		&property.IsArchived,
-		&property.CreatedAt,
-		&property.UpdatedAt,
-	)
-
-	if err != nil {
-		return property, err
-	}
-
-	property.ManagementGained = openapi_types.Date{
-		Time: managementGained.Time,
-	}
-
-	if managementLost != nil {
-		property.ManagementLost = &openapi_types.Date{
-			Time: managementLost.Time,
-		}
-	}
-
-	return property, nil
-}
-
 func (s *Server) PropertiesList(w http.ResponseWriter, r *http.Request, params PropertiesListParams) {
 	properties := []Property{}
 
@@ -1211,6 +1169,48 @@ func (s *Server) TenantsUpdate(w http.ResponseWriter, r *http.Request, id string
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(updatedTenant)
+}
+
+func scanProperty(scanner interface {
+	Scan(dest ...interface{}) error
+}) (Property, error) {
+	var property Property
+
+	var managementGained pgtype.Date
+	var managementLost *pgtype.Date
+
+	err := scanner.Scan(
+		&property.Id,
+		&property.StreetNumber,
+		&property.StreetName,
+		&property.Suburb,
+		&property.State,
+		&property.Postcode,
+		&property.Country,
+		&property.LandlordId,
+		&property.ManagementFee,
+		&managementGained,
+		&managementLost,
+		&property.IsArchived,
+		&property.CreatedAt,
+		&property.UpdatedAt,
+	)
+
+	if err != nil {
+		return property, err
+	}
+
+	property.ManagementGained = openapi_types.Date{
+		Time: managementGained.Time,
+	}
+
+	if managementLost != nil {
+		property.ManagementLost = &openapi_types.Date{
+			Time: managementLost.Time,
+		}
+	}
+
+	return property, nil
 }
 
 func scanTenant(scanner interface {
