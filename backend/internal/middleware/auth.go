@@ -7,15 +7,8 @@ import (
 
 	"github.com/clerk/clerk-sdk-go/v2"
 	"github.com/davidtaing/property-management/api"
+	"github.com/davidtaing/property-management/internal/types"
 	"github.com/gorilla/mux"
-)
-
-type contextKey string
-
-const (
-	orgIDKey   contextKey = "org_id"
-	orgRoleKey contextKey = "org_role"
-	userIDKey  contextKey = "user_id"
 )
 
 func AuthMiddleware() mux.MiddlewareFunc {
@@ -37,9 +30,9 @@ func AuthMiddleware() mux.MiddlewareFunc {
 			orgRole := claims.ActiveOrganizationRole
 			userId := claims.Subject
 
-			ctx := context.WithValue(r.Context(), orgIDKey, org)
-			ctx = context.WithValue(ctx, orgRoleKey, orgRole)
-			ctx = context.WithValue(ctx, userIDKey, userId)
+			ctx := context.WithValue(r.Context(), types.OrgIDKey, org)
+			ctx = context.WithValue(ctx, types.OrgRoleKey, orgRole)
+			ctx = context.WithValue(ctx, types.UserIDKey, userId)
 
 			r = r.WithContext(ctx)
 

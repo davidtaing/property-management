@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/davidtaing/property-management/internal/types"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/pgtype"
 	"github.com/jackc/pgx/v5"
@@ -38,9 +39,12 @@ func (s *Server) LandlordsList(w http.ResponseWriter, r *http.Request, params La
 
 	limit, page, offset := handlePaginationParams(params)
 
+	organisationID := r.Context().Value(types.OrgIDKey)
+
 	conditions := map[string]interface{}{
-		"name":          params.Name,
-		"archived_only": params.ArchivedOnly,
+		"name":            params.Name,
+		"archived_only":   params.ArchivedOnly,
+		"organisation_id": organisationID,
 	}
 
 	whereClause, queryParams, paramCount := buildWhereClause(conditions)
@@ -177,6 +181,8 @@ func (s *Server) LandlordsCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	organisationID := r.Context().Value(types.OrgIDKey)
+
 	sql := `
 		INSERT INTO landlords (
 			id,
@@ -189,7 +195,8 @@ func (s *Server) LandlordsCreate(w http.ResponseWriter, r *http.Request) {
 			suburb,
 			postcode,
 			state,
-			country
+			country,
+			organisation_id
 		) VALUES (
 			$1,
 			$2,
@@ -201,7 +208,8 @@ func (s *Server) LandlordsCreate(w http.ResponseWriter, r *http.Request) {
 			$8,
 			$9,
 			$10,
-			$11
+			$11,
+			$12
 		) RETURNING 
 		 	id,
 			name,
@@ -233,6 +241,7 @@ func (s *Server) LandlordsCreate(w http.ResponseWriter, r *http.Request) {
 		payload.Postcode,
 		payload.State,
 		payload.Country,
+		organisationID,
 	)
 
 	var createdLandlord Landlord
@@ -272,12 +281,16 @@ func (s *Server) LandlordsCreate(w http.ResponseWriter, r *http.Request) {
 func (s *Server) LandlordsArchive(w http.ResponseWriter, r *http.Request, id string) {
 	var archivedLandlord Landlord
 
+	organisationID := r.Context().Value(types.OrgIDKey)
+
 	sql := `
 		UPDATE landlords 
 		SET 
 			is_archived = NOW(),  
 			updated_at = NOW()
-		WHERE id = $1
+		WHERE 
+			id = $1 
+			AND organisation_id = $2
 		RETURNING 
 			id, 
 			name, 
@@ -295,7 +308,12 @@ func (s *Server) LandlordsArchive(w http.ResponseWriter, r *http.Request, id str
 			updated_at
 	`
 
-	err := s.dbpool.QueryRow(context.Background(), sql, id).Scan(
+	err := s.dbpool.QueryRow(
+		context.Background(),
+		sql,
+		id,
+		organisationID,
+	).Scan(
 		&archivedLandlord.Id,
 		&archivedLandlord.Name,
 		&archivedLandlord.Email,
@@ -330,6 +348,8 @@ func (s *Server) LandlordsArchive(w http.ResponseWriter, r *http.Request, id str
 func (s *Server) LandlordsGet(w http.ResponseWriter, r *http.Request, id string) {
 	var landlord Landlord
 
+	organisationID := r.Context().Value(types.OrgIDKey)
+
 	sql := `
 		SELECT 
 			id, 
@@ -346,10 +366,18 @@ func (s *Server) LandlordsGet(w http.ResponseWriter, r *http.Request, id string)
 			is_archived,
 			created_at,
 			updated_at
-		FROM landlords WHERE id = $1
+		FROM landlords 
+		WHERE 
+			id = $1 
+			AND organisation_id = $2
 	`
 
-	err := s.dbpool.QueryRow(context.Background(), sql, id).Scan(
+	err := s.dbpool.QueryRow(
+		context.Background(),
+		sql,
+		id,
+		organisationID,
+	).Scan(
 		&landlord.Id,
 		&landlord.Name,
 		&landlord.Email,
@@ -396,12 +424,16 @@ func (s *Server) LandlordsUpdate(w http.ResponseWriter, r *http.Request, id stri
 	}
 
 	setClause, values, paramCount := buildLandlordUpdateSetClause(payload)
-	values = append(values, id)
+
+	organisationID := r.Context().Value(types.OrgIDKey)
+	values = append(values, id, organisationID)
 
 	sql := fmt.Sprintf(`
 		UPDATE landlords 
 		%s
-		WHERE id = $%d
+		WHERE 
+			id = $%d
+			AND organisation_id = $%d
 		RETURNING id,
 			name,
 			email,
@@ -416,7 +448,7 @@ func (s *Server) LandlordsUpdate(w http.ResponseWriter, r *http.Request, id stri
 			is_archived,
 			created_at,
 			updated_at
-	`, setClause, paramCount+1)
+	`, setClause, paramCount+1, paramCount+2)
 
 	row := s.dbpool.QueryRow(
 		context.Background(),
@@ -463,9 +495,12 @@ func (s *Server) PropertiesList(w http.ResponseWriter, r *http.Request, params P
 
 	limit, page, offset := handlePaginationParams(params)
 
+	organisationID := r.Context().Value(types.OrgIDKey)
+
 	conditions := map[string]interface{}{
-		"full_address":  params.Address,
-		"archived_only": params.ArchivedOnly,
+		"full_address":    params.Address,
+		"archived_only":   params.ArchivedOnly,
+		"organisation_id": organisationID,
 	}
 
 	whereClause, queryParams, paramCount := buildWhereClause(conditions)
@@ -576,6 +611,8 @@ func (s *Server) PropertiesCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	organisationID := r.Context().Value(types.OrgIDKey)
+
 	sql := `
 		INSERT INTO properties (
 			id,
@@ -587,7 +624,8 @@ func (s *Server) PropertiesCreate(w http.ResponseWriter, r *http.Request) {
 			country,
 			landlord_id,
 			management_fee,
-			management_gained
+			management_gained,
+			organisation_id
 		) VALUES (
 			$1,
 			$2,
@@ -598,7 +636,8 @@ func (s *Server) PropertiesCreate(w http.ResponseWriter, r *http.Request) {
 			$7,
 			$8,
 			$9,
-			$10
+			$10,
+			$11
 		) RETURNING 
 			id, 
 			street_number, 
@@ -629,6 +668,7 @@ func (s *Server) PropertiesCreate(w http.ResponseWriter, r *http.Request) {
 		payload.LandlordId,
 		payload.ManagementFee,
 		payload.ManagementGained,
+		organisationID,
 	)
 
 	createdProperty, err := scanProperty(row)
@@ -658,7 +698,9 @@ func (s *Server) PropertiesArchive(w http.ResponseWriter, r *http.Request, id st
 		SET 
 			is_archived = NOW(),
 			updated_at = NOW()
-		WHERE id = $1
+		WHERE 
+			id = $1
+			AND organisation_id = $2
 		RETURNING 
 			id,
 			street_number,
@@ -676,7 +718,14 @@ func (s *Server) PropertiesArchive(w http.ResponseWriter, r *http.Request, id st
 			updated_at
 	`
 
-	row := s.dbpool.QueryRow(context.Background(), sql, id)
+	organisationID := r.Context().Value(types.OrgIDKey)
+
+	row := s.dbpool.QueryRow(
+		context.Background(),
+		sql,
+		id,
+		organisationID,
+	)
 
 	archivedProperty, err := scanProperty(row)
 
@@ -717,10 +766,19 @@ func (s *Server) PropertiesGet(w http.ResponseWriter, r *http.Request, id string
 			created_at,
 			updated_at
 		FROM properties 
-		WHERE id = $1
+		WHERE 
+			id = $1
+			AND organisation_id = $2
 	`
 
-	row := s.dbpool.QueryRow(context.Background(), sql, id)
+	organisationID := r.Context().Value(types.OrgIDKey)
+
+	row := s.dbpool.QueryRow(
+		context.Background(),
+		sql,
+		id,
+		organisationID,
+	)
 
 	property, err := scanProperty(row)
 
@@ -753,12 +811,16 @@ func (s *Server) PropertiesUpdate(w http.ResponseWriter, r *http.Request, id str
 	}
 
 	setClause, values, paramCount := buildPropertyUpdateSetClause(payload)
-	values = append(values, id)
+
+	organisationID := r.Context().Value(types.OrgIDKey)
+	values = append(values, id, organisationID)
 
 	sql := fmt.Sprintf(`
 		UPDATE properties 
 		%s
-		WHERE id = $%d
+		WHERE 
+			id = $%d
+			AND organisation_id = $%d
 		RETURNING 
 			id, 
 			street_number, 
@@ -774,7 +836,7 @@ func (s *Server) PropertiesUpdate(w http.ResponseWriter, r *http.Request, id str
 			is_archived,
 			created_at,
 			updated_at
-	`, setClause, paramCount+1)
+	`, setClause, paramCount+1, paramCount+2)
 
 	row := s.dbpool.QueryRow(
 		context.Background(),
@@ -806,9 +868,12 @@ func (s *Server) TenantsList(w http.ResponseWriter, r *http.Request, params Tena
 
 	limit, page, offset := handlePaginationParams(params)
 
+	organisationID := r.Context().Value(types.OrgIDKey)
+
 	conditions := map[string]interface{}{
-		"name":          params.Name,
-		"archived_only": params.ArchivedOnly,
+		"name":            params.Name,
+		"archived_only":   params.ArchivedOnly,
+		"organisation_id": organisationID,
 	}
 
 	whereClause, queryParams, paramCount := buildWhereClause(conditions)
@@ -937,7 +1002,8 @@ func (s *Server) TenantsCreate(w http.ResponseWriter, r *http.Request) {
 			original_start_date,
 			start_date,
 			end_date,
-			property_id
+			property_id,
+			organisation_id
 		)
 		VALUES (
 			$1,
@@ -952,7 +1018,8 @@ func (s *Server) TenantsCreate(w http.ResponseWriter, r *http.Request) {
 			$10,
 			$11,
 			$12,
-			$13
+			$13,
+			$14
 		) RETURNING 
 		 	id,
 			name,
@@ -975,6 +1042,8 @@ func (s *Server) TenantsCreate(w http.ResponseWriter, r *http.Request) {
 			updated_at
 	`
 
+	organisationID := r.Context().Value(types.OrgIDKey)
+
 	row := s.dbpool.QueryRow(
 		context.Background(),
 		sql,
@@ -991,6 +1060,7 @@ func (s *Server) TenantsCreate(w http.ResponseWriter, r *http.Request) {
 		payload.StartDate,
 		payload.EndDate,
 		payload.PropertyId,
+		organisationID,
 	)
 
 	createdTenant, err := scanTenant(row)
@@ -1019,7 +1089,9 @@ func (s *Server) TenantsArchive(w http.ResponseWriter, r *http.Request, id strin
 		SET 
 			is_archived = NOW(),
 			updated_at = NOW()
-		WHERE id = $1
+		WHERE 
+			id = $1
+			AND organisation_id = $2
 		RETURNING 
 			id,
 			name,
@@ -1042,7 +1114,14 @@ func (s *Server) TenantsArchive(w http.ResponseWriter, r *http.Request, id strin
 			updated_at
 	`
 
-	row := s.dbpool.QueryRow(context.Background(), sql, id)
+	organisationID := r.Context().Value(types.OrgIDKey)
+
+	row := s.dbpool.QueryRow(
+		context.Background(),
+		sql,
+		id,
+		organisationID,
+	)
 
 	archivedTenant, err := scanTenant(row)
 
@@ -1086,10 +1165,19 @@ func (s *Server) TenantsGet(w http.ResponseWriter, r *http.Request, id string) {
 			created_at,
 			updated_at
 		FROM tenants 
-		WHERE id = $1
+		WHERE 
+			id = $1
+			AND organisation_id = $2
 	`
 
-	row := s.dbpool.QueryRow(context.Background(), sql, id)
+	organisationID := r.Context().Value(types.OrgIDKey)
+
+	row := s.dbpool.QueryRow(
+		context.Background(),
+		sql,
+		id,
+		organisationID,
+	)
 
 	tenant, err := scanTenant(row)
 
@@ -1118,12 +1206,16 @@ func (s *Server) TenantsUpdate(w http.ResponseWriter, r *http.Request, id string
 	}
 
 	setClause, values, paramCount := buildTenantUpdateSetClause(payload)
-	values = append(values, id)
+
+	organisationID := r.Context().Value(types.OrgIDKey)
+	values = append(values, id, organisationID)
 
 	sql := fmt.Sprintf(`
 		UPDATE tenants 
 		%s
-		WHERE id = $%d
+		WHERE 
+			id = $%d
+			AND organisation_id = $%d
 		RETURNING 
 			id,
 			name,
@@ -1144,7 +1236,7 @@ func (s *Server) TenantsUpdate(w http.ResponseWriter, r *http.Request, id string
 			property_id,
 			created_at,
 			updated_at
-	`, setClause, paramCount)
+	`, setClause, paramCount+1, paramCount+2)
 
 	var updatedTenant Tenant
 
@@ -1354,7 +1446,7 @@ func buildWhereClause(conditions map[string]interface{}) (string, []interface{},
 		return "", []interface{}{}, 1
 	}
 
-	return "WHERE " + strings.Join(clauses, " AND "), params, paramCount
+	return "WHERE " + strings.Join(clauses, "\nAND "), params, paramCount
 }
 
 func buildLandlordUpdateSetClause(payload UpdateLandlord) (string, []interface{}, int) {
